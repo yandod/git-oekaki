@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>どうぶつお絵かきで学ぶ Git と GitHub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+KR:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#fff8ee; --ink:#3a3226; --sub:#7a6e5d; --line:#eadfcd;
@@ -27,12 +27,12 @@ header .sp{flex:1}
 .btn.blue{background:var(--blue)}
 .btn.green{background:var(--green)}
 .btn.hint{position:relative;outline:4px solid #ffd400;outline-offset:3px;animation:pulse 1s infinite,bob 1s ease-in-out infinite;z-index:2}
-.btn.hint::after{content:"👈 ここを押そう！";position:absolute;left:100%;top:50%;margin-left:14px;transform:translateY(-50%);background:#ffd400;color:#3a3226;font-size:.8rem;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2);animation:nudge .6s ease-in-out infinite alternate}
+.btn.hint::after{content:var(--tipR);position:absolute;left:100%;top:50%;margin-left:14px;transform:translateY(-50%);background:#ffd400;color:#3a3226;font-size:.8rem;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2);animation:nudge .6s ease-in-out infinite alternate}
 .btn.hint.no-tip::after{display:none}
 .cvhint canvas{outline:4px solid #ffd400;outline-offset:3px;animation:pulse 1s infinite;cursor:pointer}
-.cvhint::after{content:"👆 この絵をクリック！";position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:10px;background:#ffd400;color:#3a3226;font-size:.8rem;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:3;animation:nudge3 .6s ease-in-out infinite alternate}
+.cvhint::after{content:var(--tipC);position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:10px;background:#ffd400;color:#3a3226;font-size:.8rem;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:3;animation:nudge3 .6s ease-in-out infinite alternate}
 @keyframes nudge3{from{margin-top:8px}to{margin-top:16px}}
-.btn.hint.up-tip::after{content:"👇 ここ！";left:50%;top:auto;bottom:100%;margin:0 0 10px;transform:translateX(-50%);animation:nudge2 .6s ease-in-out infinite alternate}
+.btn.hint.up-tip::after{content:var(--tipU);left:50%;top:auto;bottom:100%;margin:0 0 10px;transform:translateX(-50%);animation:nudge2 .6s ease-in-out infinite alternate}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,90,40,.85),0 3px 0 rgba(0,0,0,.15)}70%{box-shadow:0 0 0 24px rgba(255,90,40,0),0 3px 0 rgba(0,0,0,.15)}100%{box-shadow:0 0 0 0 rgba(255,90,40,0),0 3px 0 rgba(0,0,0,.15)}}
 @keyframes bob{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 @keyframes nudge{from{margin-left:10px}to{margin-left:20px}}
@@ -162,19 +162,26 @@ section.dict h2{font-size:1.15rem;margin:10px 0}
 details.teacher{background:#fff;border-radius:14px;padding:10px 14px;border:2px solid var(--line);margin-top:14px;font-size:.88rem}
 details.teacher summary{font-weight:700;cursor:pointer}
 footer{text-align:center;font-size:.75rem;color:var(--sub);padding:0 0 20px}
+html:lang(ko) body{font-family:"Noto Sans KR","M PLUS Rounded 1c",system-ui,sans-serif}
+.langs{display:flex;gap:4px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:3px}
+.lang{border:0;background:none;border-radius:999px;padding:4px 12px;font-size:.82rem;cursor:pointer;font-weight:700;color:var(--sub)}
+.lang.on{background:var(--ink);color:#fff}
 </style>
 </head>
 <body>
 <header>
-  <h1>🎨 どうぶつお絵かきで学ぶ Git と GitHub<small>クマさんの絵に、あなたが好きな動物を描き足そう ― フォークからマージまでの体験</small></h1>
+  <h1><span id="tTitle"></span><small id="tSub"></small></h1>
   <div class="sp"></div>
-  <button class="btn ghost" data-act="reset">↺ さいしょから</button>
+  <div class="langs" id="langs">
+    <button class="lang" data-lang="ja">日本語</button><button class="lang" data-lang="en">English</button><button class="lang" data-lang="ko">한국어</button>
+  </div>
+  <button class="btn ghost" data-act="reset" id="tReset"></button>
 </header>
 <div class="topbar"><div class="flow" id="flow"></div><div class="guide" id="guide"></div></div>
 <div class="main">
   <div class="world">
     <div class="area cloud" id="cloud">
-      <div class="area-title">☁️ GitHub（インターネットの上）</div>
+      <div class="area-title" id="tCloud"></div>
       <div class="two">
         <div class="zone" id="zUp"></div>
         <div id="zFork"></div>
@@ -182,40 +189,14 @@ footer{text-align:center;font-size:.75rem;color:var(--sub);padding:0 0 20px}
       <div id="prArea"></div>
     </div>
     <div class="area pc">
-      <div class="area-title">💻 あなたのパソコン</div>
+      <div class="area-title" id="tPc"></div>
       <div id="zLocal"></div>
     </div>
   </div>
 </div>
 
-<section class="dict">
-  <h2>📖 ことばずかん</h2>
-  <div class="dgrid">
-    <div class="dcard"><div class="t"><span>📚</span>リポジトリ</div><p>作品をしまっておく保管庫。今の絵だけでなく、これまでのセーブの記録（歴史）も全部入っている。</p><code>git init</code></div>
-    <div class="dcard"><div class="t"><span>💾</span>コミット</div><p>ゲームのセーブポイント。「いつ・だれが・なにを変えたか」をメッセージつきで記録する。いつでもその時点の絵にもどれる。</p><code>git add ファイル</code> <code>git commit -m "メッセージ"</code></div>
-    <div class="dcard"><div class="t"><span>🌿</span>ブランチ</div><p>ためし描き用の別ページ。本番の絵（main）をよごさずに、安心して描いたり試したりできる。</p><code>git switch -c ブランチ名</code></div>
-    <div class="dcard"><div class="t"><span>🍴</span>フォーク</div><p>他の人のリポジトリを丸ごとコピーして、自分のGitHubに置くこと。自分のコピーなので自由に変えられる。</p><code>GitHubの Fork ボタン</code></div>
-    <div class="dcard"><div class="t"><span>⬇️</span>クローン</div><p>GitHubにあるリポジトリを、自分のパソコンにコピーしてくること。</p><code>git clone URL</code></div>
-    <div class="dcard"><div class="t"><span>⬆️</span>プッシュ</div><p>パソコンでしたコミットを、GitHubへ送ること。送るまではパソコンの中だけの変更。</p><code>git push origin ブランチ名</code></div>
-    <div class="dcard"><div class="t"><span>📨</span>プルリクエスト（PR）</div><p>「わたしの変更を、あなたの作品に取りこんでくれませんか？」というお願い。話し合いもここでする。</p><code>GitHubの Pull request ボタン</code></div>
-    <div class="dcard"><div class="t"><span>🔍</span>レビュー</div><p>変更をチェックしてコメントすること。直して同じブランチにプッシュすると、PRの中身も自動で新しくなる。</p></div>
-    <div class="dcard"><div class="t"><span>🔀</span>マージ</div><p>ブランチの変更を合体させて、本番に取りこむこと。</p><code>GitHubの Merge ボタン</code></div>
-    <div class="dcard"><div class="t"><span>⚡</span>コンフリクト</div><p>同じ場所を、別々の人がちがうように変えて「ぶつかる」こと。どちらにするかは人間が決める。</p></div>
-    <div class="dcard"><div class="t"><span>🔄</span>同期・プル</div><p>本家やGitHubの新しい変化を、自分のフォークやパソコンに持ってくること。フォークは自動では新しくならない。</p><code>Sync fork</code> <code>git pull</code></div>
-  </div>
-  <details class="teacher">
-    <summary>先生向けメモ（本物のGitとの対応と、省略していること）</summary>
-    <ul>
-      <li>12×12マスの絵1枚を、リポジトリ内のファイル1つ（<code>oekaki.png</code>）に見立てています。1マスの変更がテキストファイルの1行の変更に相当します。</li>
-      <li><code>git add</code>（ステージング）と<code>git commit</code>は1つのボタンにまとめています。左下の「本物のコマンド」には両方を表示しています。</li>
-      <li>本家を<code>upstream</code>、自分のフォークを<code>origin</code>として扱っています。リモートの登録手順は省略しています。</li>
-      <li>途中で第三者（ペンギン）のPRが本家にマージされ、本家が先に進む状況を作っています。同じマスを双方が変えた場合だけコンフリクトになります（マス単位の3-wayマージ）。</li>
-      <li>マージはマージコミット方式です。フォークの更新はGitHubの「Sync fork」、手元の更新は<code>git pull</code>で表現しています。</li>
-      <li>データはこのページの中だけで動き、どこにも送信されません。リロードや「さいしょから」で初期状態に戻ります。</li>
-    </ul>
-  </details>
-</section>
-<footer>by yandod ・ 実際のGitHubでは、ボタンの位置や名前が少しちがうことがあります</footer>
+<section class="dict" id="dict"></section>
+<footer id="tFoot"></footer>
 
 <div class="pop" id="pop"></div>
 <div class="toast" id="toast"></div>
@@ -223,14 +204,288 @@ footer{text-align:center;font-size:.75rem;color:var(--sub);padding:0 0 20px}
 
 <script>
 (function(){
+/* =====================================================================
+   言語データ / Language data / 언어 데이터
+   ===================================================================== */
+const I18N={
+ja:{
+  htmlLang:'ja', title:'🎨 どうぶつお絵かきで学ぶ Git と GitHub', sub:'クマさんの絵に、あなたが好きな動物を描き足そう ― フォークからマージまでの体験',
+  reset:'↺ さいしょから', cloud:'☁️ GitHub（インターネットの上）', pc:'💻 あなたのパソコン',
+  bear:'クマさん', peng:'ペンギンさん', you:'あなた',
+  palette:['しろ','そら','くさ','ちゃいろ','きいろ','あか','ピンク','くろ','オレンジ','むらさき','あお','こいみどり'],
+  tipR:'👈 ここを押そう！', tipU:'👇 ここ！', tipC:'👆 この絵をクリック！',
+  flow:['フォーク','クローン','ブランチ','コミット','プッシュ','プルリクエスト','レビュー','マージ','同期・プル'],
+  nav:'ナビ', missionH:'🎯 いまやること', logHead:'⌨️ 本物のコマンドだと…', logEmpty:'（ボタンを押すと、本物のGitではどんなコマンドになるかがここに出るよ）',
+  guide(s,S,f){switch(s){
+    case 0:return {say:'まずはニックネームを教えてね。',mission:'ニックネームを入れて「はじめる」'};
+    case 1:return S.tried?{say:'そう！ 人の作品には、勝手に描きこめないんだ。<br>そこで<b>フォーク</b>。クマさんのリポジトリを丸ごとコピーして、GitHubの中に<b>あなた専用の保管庫</b>を作るよ。',mission:'本家の「🍴 フォーク」ボタンを押そう'}
+      :{say:'上にあるのは、🐻クマさんの<b>リポジトリ</b>（作品の保管庫）。あなた（🧑‍🎨）のものではないよ。<br>絵の下の ● は<b>コミット</b>＝セーブポイント。押すと、そのときの絵が見られるよ。',mission:'ためしに、クマさんの絵をクリックして描きこんでみよう',tip:'● をクリックすると「タイムマシン」みたいに昔の絵が見られるよ。'};
+    case 2:return {say:'GitHubの中に<b>あなたのフォーク</b>ができた！ ここはあなたの場所だから、自由に変えていいよ。<br>でも絵を描くのは手元のパソコンのほうがやりやすい。フォークを自分のパソコンに<b>クローン</b>（コピー）しよう。',mission:'フォークの「⬇️ クローン」ボタンを押そう',tip:'フォークのコミットの歴史を見てみて。クマさんが描いたときの記録も、まるごとコピーされているね。'};
+    case 3:return {say:'パソコンに絵が届いた！ でも、すぐには描き始めないでね。<br>まず<b>ブランチ</b>を作るよ。ブランチは「ためし描き用の別のページ」。<code>main</code>（本番の絵）をよごさずに、安心して描けるんだ。',mission:'ブランチ名を確かめて「作る」を押そう'};
+    case 4:return {say:`ブランチ ${f} に切り替わったよ。さあ、好きな動物を描いてみよう！<br>描けたら、なにを変えたかを<b>メッセージ</b>に書いて<b>コミット</b>。コミットはゲームの<b>セーブ</b>みたいなものだよ。`,mission:'パソコンの絵に描いて →「💾 コミット」',tip:'点線で囲まれたマスが、まだセーブしていない変更。「↩️ 取り消す」で最後のセーブにもどせるよ。'};
+    case 5:return {say:'セーブできた！ グラフに新しい ● が増えたね。何回コミットしてもいいよ。<br>でもこのコミットは、まだ<b>あなたのパソコンの中だけ</b>。GitHubのフォークへ送る<b>プッシュ</b>をしよう。',mission:'パソコンの「⬆️ プッシュ」を押そう',tip:`ためしにブランチを <code>main</code> に切り替えてみて。絵がもとにもどるよ！ もう一度 ${f} を押すと、あなたの絵が出てくる。`};
+    case 6:return {say:'フォークにあなたのブランチが届いた！<br>いよいよクマさんにお願いしよう。<b>プルリクエスト</b>は「ぼくの変更を、あなたの作品に取りこんでくれませんか？」というお願いの手紙だよ。',mission:'フォークでタイトルを書いて「作る」を押そう'};
+    case 7:return S.pr.review?{say:'クマさんから<b>レビュー</b>（チェックとコメント）が届いたよ！<br>プルリクエストは、同じブランチにコミットしてプッシュすると<b>中身が自動で新しくなる</b>んだ。',mission:'サインを描き足して → 💾 コミット → ⬆️ プッシュ'}
+      :{say:'プルリクエストを送ったね。クマさんが見るまで、ちょっと待っててね…',mission:'クマさんの返事を待とう（上のプルリクエストを見てね）',tip:S.pengDone?'あれ？ 待っているあいだに、ペンギンさんの変更が本家に入ったみたい。本家の絵とグラフを見てみて。':''};
+    case 8:return (S.cf.length&&!S.cfChoice)?{say:'あれれ？ ペンギンさんのお花と<b>同じマス</b>に、あなたもちがう色を塗っていたみたい。これを<b>コンフリクト</b>（衝突）と言うよ。<br>どっちの色にするかは、コンピューターでは決められない。人間が決めるんだ。',mission:'プルリクエストで、どちらの色にするかえらぼう'}
+      :{say:'ばっちり！ クマさんがOKを出したよ。<br>本家（main）にあなたの変更を合体させる<b>マージ</b>は、作品の持ち主の🐻クマさんがやるよ。あなたはボタンを押さなくていいんだ。',mission:'🐻 クマさんがマージするのを見守ろう'};
+    case 9:return {say:'やったね！ あなたの絵が、クマさんの作品の一部になった 🎉 これを<b>コントリビュート</b>（貢献）と言うよ。<br>でもちょっと待って。あなたのフォークを見て。ペンギンさんのお花がないね？ <b>フォークは自動では新しくならない</b>んだ。',mission:'フォークの「🔄 同期（Sync fork）」を押そう'};
+    case 10:return {say:'フォークが本家と同じになった。最後に、パソコンにも取りこもう。<br>GitHubから手元に持ってくるのが<b>プル</b>だよ。',mission:'パソコンの「⬇️ プル」を押そう'};
+    case 11:return {say:'これで全部そろった！ 3つの場所の絵が同じになったね。<br>フォーク → クローン → ブランチ → コミット → プッシュ → プルリクエスト → マージ。世界中のプログラマーも、この流れでいっしょにソフトを作っているんだよ。',mission:'🎓 クリア！ 下の「ことばずかん」でふりかえろう',tip:'もう一度やるときは右上の「さいしょから」。わざとペンギンさんのお花（右下）の場所に描くと、コンフリクトを体験できるよ。'};
+  }},
+  upTitle:'クマさんの<b>本家</b>リポジトリ', upTag:'本家 upstream', lockOnly:'🔒 クマさんだけ', forked:'✓ フォーク済み', forkBtn:'🍴 フォーク',
+  forkSubFirst:'まずは左の絵をクリックしてみよう', forkSub:'自分用のコピーを作る', pengMerged:'🐧 ペンギンさんの #1 がマージされた', mineMerged:'🧑‍🎨 あなたの #2 がマージされた',
+  histUp:'コミットの歴史（● を押すと、そのときの絵）', hist:'コミットの歴史', histLocal:'コミットの歴史（緑のラベルが、いま開いているブランチ）',
+  forkPh:'🍴 まだフォークしていません<br><small>フォークすると、ここに<b>あなた専用のコピー</b>ができます</small>',
+  cloneBtn:'⬇️ クローン', cloneSub:'パソコンにコピーする', cloned:'✓ クローン済み', prH:'📨 プルリクエスト', titlePh:'タイトル', create:'作る',
+  prSent:'📨 プルリクエスト #2 を出した', behind:n=>`⚠️ 本家より ${n} コミット遅れています`, syncBtn:'🔄 同期（Sync fork）', same:'✓ 本家と同じ',
+  forkTitle:n=>`<b>あなた</b>（${n}）の<b>フォーク</b>`, forkTag:'フォーク origin',
+  localPh:'💻 まだクローンしていません<br><small>クローンすると、ここで絵を描けるようになります</small>', here:'いまここ',
+  branchH:'🌿 ブランチを作る', branchHint:'英小文字・数字・ハイフンで名前をつけるよ', commitH:'💾 コミット（セーブ）',
+  unsaved:n=>`セーブしていない変更：<b>${n} マス</b>`, noChange:'変更なし', msgPh:'例：ネコを描いた', commitBtn:'💾 コミット', restoreBtn:'↩️ 取り消す',
+  pushH:'⬆️ プッシュ（GitHubへ送る）', notPushed:n=>`まだ送っていないコミット：<b>${n} 個</b>`, noUnpushed:'送っていないコミットはないよ', pushBtn:'⬆️ プッシュ',
+  pullH:'⬇️ プル（GitHubから取りこむ）', pullSub:'main に切り替えて、フォークの新しい絵を持ってくる', pullBtn:'⬇️ プル',
+  allSameH:'✅ ぜんぶ同じ', allSameSub:'本家・フォーク・パソコンの main が同じ絵になったよ', localTitle:'<b>あなた</b>のパソコンのリポジトリ', localTag:'ローカル',
+  mergedBox:'🎉 <b>マージされました！</b> あなたの変更が本家の main に入りました。', cfTitle:n=>`⚡ コンフリクト：${n} マスがぶつかっています`,
+  cfSub:'マージの前に、PRを出した<b>あなた</b>がどちらにするか決めよう', cfUp:'本家（ペンギンさん）', pickOne:'👇 どちらかを押そう',
+  cfTheirs:'🐧 ペンギンさんの色にする', cfMine:'🧑‍🎨 あなたの色にする', approved:r=>`✅ クマさんが承認しました${r?'（コンフリクトは解決ずみ）':''}。`,
+  bearMerging:'🐻 クマさんが「🔀 Merge」ボタンを押しています…', mergerNote:'マージするのは、本家の持ち主のクマさん',
+  changesReq:'✋ クマさんが<b>変更をお願い</b>しています。直してプッシュしよう。', waiting:'⏳ レビュー待ち…',
+  prMeta:(c,n)=>`${c} コミット ・ ${n} マス変更`, changed:'🖼 変更されたところ（ピンクの枠）', before:'前', after:'後', commitsL:'💾 ふくまれるコミット', talkL:'💬 会話',
+  merging:'いまはクマさんがマージするところ。見守ろう！', mergedDone:'プルリクエストはマージ済み。おつかれさま！',
+  onMain:f=>`いまは <b>main</b>（本番の絵）を開いているよ。ブランチ「${f}」に切り替えてから描こう`, mainFirst:'main には直接描かないのがお約束。まずブランチを作ろう 🌿',
+  branchErr:'ブランチの名前を英小文字で書いてね（main 以外）', unsavedSwitch:'セーブしていない変更があるよ。コミットするか「取り消す」をしてから切り替えよう',
+  switched:(b,m)=>`🌿 ${b} に切り替え。絵が${m?'本番の絵':'そのブランチの絵'}になったね`, nothingRestore:'取り消す変更はないよ', restored:'↩️ 最後のセーブにもどしたよ',
+  noChanges:'まだ変更がないよ。絵を描いてからコミットしよう', needMsg:'メッセージを書こう（なにを変えたか、ひとこと）', committed:'💾 セーブ（コミット）できた！',
+  switchBeforePush:f=>`ブランチ「${f}」に切り替えてからプッシュしよう`, pengToast:'🐧 ペンギンさんの変更が本家に入ったよ！ 本家の絵を見てみて',
+  reviewToast:'🐻 クマさんからレビューが届いた！', approvedToast:'✅ クマさんが承認してくれた！', mergedToast:'🎉 クマさんがマージしてくれた！',
+  lockToast:'🔒 これはクマさんのリポジトリ。勝手には描きこめないよ！', drawOnPc:'絵はパソコンで描こう（下の「あなたのパソコン」）', drawClone:'GitHubの上ではなく、パソコンで描こう。まずクローンしてね',
+  nickNeed:'ニックネームを入れてね',
+  tOpen:'クマさんの絵に動物を描き足しました。取りこんでもらえるとうれしいです！', tPeng:'🐧 そのころ、ペンギンさんのプルリクエスト #1 が本家にマージされました',
+  tReview:'すてきな絵だね！ 🎨 ひとつお願い。絵のどこかに、あなたの<b>サイン</b>（1マスでもOK）を描き足してくれるかな？',
+  tAdd:(n,k)=>`${n}が ${k} 個のコミットを追加しました`, tApprove:'サインもばっちり！ 承認するね ✅',
+  tCf:m=>`あなたがコンフリクトを解決：${m?'あなた':'ペンギンさん'}の色にした`, tThanks:'マージしたよ。ありがとう！ 🎉',
+  lFork:'# GitHubで、クマさんのリポジトリの「Fork」ボタンを押す', lForkOut:id=>`→ github.com/${id}/oekaki ができた`, lPR:'# GitHubで「Pull request」を作る',
+  lPeng:'# （そのころ、ペンギンさんの #1 が本家にマージされた）', lMerge:'# （本家の持ち主のクマさんが、GitHubで「Merge pull request」を押した）',
+  lSync:'# GitHubで、フォークの「Sync fork」ボタンを押す', changedOut:n=>`1 file changed (${n}マス)`, pullOut:'oekaki.png | 更新',
+  m1:'そらと草原をかいた', m2:'木をかいた', m3:'たいようと雲を足した', mPeng:'お花をさかせた (#1)',
+  popMerge:'2つの流れを合体したコミット', popSave:'このときの絵（セーブポイント）',
+  wTitle:'🎨 クマさんの絵に、描き足しにいこう',
+  wIntro:'クマさんがGitHubで公開している絵に、あなたが好きな動物を描き足して、クマさんの作品に<b>取りこんでもらう</b>までを体験します。プログラマーが世界中の人とソフトを作るときも、同じ流れを使っています。',
+  castMeSub:'絵を描き足す人', castBearSub:'絵（本家）の持ち主', castPengSub:'ほかの参加者', nickLabel:'あなたのニックネーム', nickPh:'例：ゆう', start:'はじめる ▶',
+  prDefault:'動物を描き足しました',
+  dictTitle:'📖 ことばずかん',
+  dict:[['📚','リポジトリ','作品をしまっておく保管庫。今の絵だけでなく、これまでのセーブの記録（歴史）も全部入っている。',['git init']],
+    ['💾','コミット','ゲームのセーブポイント。「いつ・だれが・なにを変えたか」をメッセージつきで記録する。いつでもその時点の絵にもどれる。',['git add ファイル','git commit -m "メッセージ"']],
+    ['🌿','ブランチ','ためし描き用の別ページ。本番の絵（main）をよごさずに、安心して描いたり試したりできる。',['git switch -c ブランチ名']],
+    ['🍴','フォーク','他の人のリポジトリを丸ごとコピーして、自分のGitHubに置くこと。自分のコピーなので自由に変えられる。',['GitHubの Fork ボタン']],
+    ['⬇️','クローン','GitHubにあるリポジトリを、自分のパソコンにコピーしてくること。',['git clone URL']],
+    ['⬆️','プッシュ','パソコンでしたコミットを、GitHubへ送ること。送るまではパソコンの中だけの変更。',['git push origin ブランチ名']],
+    ['📨','プルリクエスト（PR）','「わたしの変更を、あなたの作品に取りこんでくれませんか？」というお願い。話し合いもここでする。',['GitHubの Pull request ボタン']],
+    ['🔍','レビュー','変更をチェックしてコメントすること。直して同じブランチにプッシュすると、PRの中身も自動で新しくなる。',[]],
+    ['🔀','マージ','ブランチの変更を合体させて、本番に取りこむこと。',['GitHubの Merge ボタン']],
+    ['⚡','コンフリクト','同じ場所を、別々の人がちがうように変えて「ぶつかる」こと。どちらにするかは人間が決める。',[]],
+    ['🔄','同期・プル','本家やGitHubの新しい変化を、自分のフォークやパソコンに持ってくること。フォークは自動では新しくならない。',['Sync fork','git pull']]],
+  teacherSum:'先生向けメモ（本物のGitとの対応と、省略していること）',
+  teacher:['12×12マスの絵1枚を、リポジトリ内のファイル1つ（<code>oekaki.png</code>）に見立てています。1マスの変更がテキストファイルの1行の変更に相当します。',
+    '<code>git add</code>（ステージング）と<code>git commit</code>は1つのボタンにまとめています。上部の「本物のコマンド」には両方を表示しています。',
+    '本家を<code>upstream</code>、自分のフォークを<code>origin</code>として扱っています。リモートの登録手順は省略しています。',
+    '途中で第三者（ペンギン）のPRが本家にマージされ、本家が先に進む状況を作っています。同じマスを双方が変えた場合だけコンフリクトになります（マス単位の3-wayマージ）。',
+    'マージはマージコミット方式で、本家の持ち主（クマ）が行います。フォークの更新はGitHubの「Sync fork」、手元の更新は<code>git pull</code>で表現しています。',
+    'データはこのページの中だけで動き、どこにも送信されません。リロードや「さいしょから」で初期状態に戻ります。'],
+  foot:'by yandod ・ 実際のGitHubでは、ボタンの位置や名前が少しちがうことがあります'
+},
+en:{
+  htmlLang:'en', title:'🎨 Learn Git & GitHub with Animal Drawings', sub:'Add your favorite animal to Bear\'s picture — from fork to merge',
+  reset:'↺ Start over', cloud:'☁️ GitHub (on the internet)', pc:'💻 Your computer',
+  bear:'Bear', peng:'Penguin', you:'You',
+  palette:['white','sky','grass','brown','yellow','red','pink','black','orange','purple','blue','dark green'],
+  tipR:'👈 Press here!', tipU:'👇 Here!', tipC:'👆 Click this picture!',
+  flow:['Fork','Clone','Branch','Commit','Push','Pull request','Review','Merge','Sync & Pull'],
+  nav:'Guide', missionH:'🎯 What to do now', logHead:'⌨️ As real commands…', logEmpty:'(When you press a button, the matching real Git command shows up here)',
+  guide(s,S,f){switch(s){
+    case 0:return {say:'First, tell us your nickname.',mission:'Enter a nickname and press "Start"'};
+    case 1:return S.tried?{say:'Right! You can\'t draw on someone else\'s work without permission.<br>That\'s what a <b>fork</b> is for. You copy Bear\'s whole repository and make <b>your own storage box</b> on GitHub.',mission:'Press the "🍴 Fork" button on the original'}
+      :{say:'Up top is 🐻 Bear\'s <b>repository</b> (a storage box for the project). It\'s not yours (🧑‍🎨).<br>The ● dots under the picture are <b>commits</b> = save points. Click one to see the picture at that time.',mission:'Try clicking Bear\'s picture to draw on it',tip:'Click a ● to travel back in time and see an older picture.'};
+    case 2:return {say:'You now have <b>your fork</b> on GitHub! It\'s your place, so you can change it freely.<br>But drawing is easier on your own computer. Let\'s <b>clone</b> (copy) your fork to your computer.',mission:'Press "⬇️ Clone" on your fork',tip:'Look at your fork\'s commit history. Bear\'s save records were copied too!'};
+    case 3:return {say:'The picture arrived on your computer! But don\'t start drawing yet.<br>First, make a <b>branch</b>. A branch is like a separate page for trying things out. You can draw safely without messing up <code>main</code> (the real picture).',mission:'Check the branch name and press "Create"'};
+    case 4:return {say:`You switched to branch ${f}. Now draw your favorite animal!<br>When you\'re done, write a <b>message</b> about what you changed and <b>commit</b>. A commit is like <b>saving</b> a game.`,mission:'Draw on your computer\'s picture → "💾 Commit"',tip:'Cells with dotted borders are changes you haven\'t saved yet. "↩️ Undo" takes you back to your last save.'};
+    case 5:return {say:'Saved! A new ● appeared in the graph. You can commit as many times as you like.<br>But this commit is still <b>only on your computer</b>. Let\'s <b>push</b> it to your fork on GitHub.',mission:'Press "⬆️ Push" on your computer',tip:`Try switching to the <code>main</code> branch. The picture goes back to the original! Click ${f} again and your drawing comes back.`};
+    case 6:return {say:'Your branch arrived at your fork!<br>Now ask Bear. A <b>pull request</b> is a letter that says "Could you add my changes to your project?"',mission:'Write a title on your fork and press "Create"'};
+    case 7:return S.pr.review?{say:'Bear sent a <b>review</b> (checks and comments)!<br>If you commit and push to the same branch, the pull request <b>updates automatically</b>.',mission:'Add your signature → 💾 Commit → ⬆️ Push'}
+      :{say:'You sent a pull request. Wait a moment until Bear looks at it…',mission:'Wait for Bear\'s reply (see the pull request above)',tip:S.pengDone?'Huh? While you were waiting, Penguin\'s change got into the original. Look at the original picture and graph.':''};
+    case 8:return (S.cf.length&&!S.cfChoice)?{say:'Uh-oh! You painted a different color on <b>the same cell</b> as Penguin\'s flower. This is called a <b>conflict</b>.<br>A computer can\'t decide which color is right. A human decides.',mission:'In the pull request, choose which color to keep'}
+      :{say:'Great! Bear approved it.<br>The <b>merge</b>, which combines your changes into the original (main), is done by the owner, 🐻 Bear. You don\'t need to press any button.',mission:'🐻 Watch Bear merge it'};
+    case 9:return {say:'You did it! Your drawing is now part of Bear\'s project 🎉 This is called <b>contributing</b>.<br>But wait. Look at your fork. Penguin\'s flower isn\'t there, right? <b>A fork does not update by itself.</b>',mission:'Press "🔄 Sync fork" on your fork'};
+    case 10:return {say:'Your fork now matches the original. Finally, bring it to your computer too.<br>Bringing changes from GitHub to your computer is called <b>pull</b>.',mission:'Press "⬇️ Pull" on your computer'};
+    case 11:return {say:'Everything matches now! The picture is the same in all three places.<br>Fork → Clone → Branch → Commit → Push → Pull request → Merge. Programmers all over the world build software together this way.',mission:'🎓 Clear! Review with the "Word Book" below',tip:'To play again, press "Start over" at the top right. If you draw where Penguin\'s flower is (bottom right), you can try a conflict.'};
+  }},
+  upTitle:'Bear\'s <b>original</b> repository', upTag:'original · upstream', lockOnly:'🔒 Bear only', forked:'✓ Forked', forkBtn:'🍴 Fork',
+  forkSubFirst:'First, try clicking the picture on the left', forkSub:'Make your own copy', pengMerged:'🐧 Penguin\'s #1 was merged', mineMerged:'🧑‍🎨 Your #2 was merged',
+  histUp:'Commit history (click a ● to see the picture then)', hist:'Commit history', histLocal:'Commit history (the green label is the branch you have open)',
+  forkPh:'🍴 Not forked yet<br><small>When you fork, <b>your own copy</b> appears here</small>',
+  cloneBtn:'⬇️ Clone', cloneSub:'Copy to your computer', cloned:'✓ Cloned', prH:'📨 Pull request', titlePh:'Title', create:'Create',
+  prSent:'📨 Opened pull request #2', behind:n=>`⚠️ ${n} commit(s) behind the original`, syncBtn:'🔄 Sync fork', same:'✓ Same as the original',
+  forkTitle:n=>`<b>Your</b> (${n}) <b>fork</b>`, forkTag:'fork · origin',
+  localPh:'💻 Not cloned yet<br><small>After you clone, you can draw here</small>', here:'you are here',
+  branchH:'🌿 Create a branch', branchHint:'Use lowercase letters, numbers and hyphens', commitH:'💾 Commit (save)',
+  unsaved:n=>`Unsaved changes: <b>${n} cell(s)</b>`, noChange:'No changes', msgPh:'e.g. Drew a cat', commitBtn:'💾 Commit', restoreBtn:'↩️ Undo',
+  pushH:'⬆️ Push (send to GitHub)', notPushed:n=>`Commits not sent yet: <b>${n}</b>`, noUnpushed:'All commits have been sent', pushBtn:'⬆️ Push',
+  pullH:'⬇️ Pull (get from GitHub)', pullSub:'Switch to main and bring the new picture from your fork', pullBtn:'⬇️ Pull',
+  allSameH:'✅ All the same', allSameSub:'main is now the same picture in the original, your fork and your computer', localTitle:'<b>Your</b> computer\'s repository', localTag:'local',
+  mergedBox:'🎉 <b>Merged!</b> Your changes are now in the original main.', cfTitle:n=>`⚡ Conflict: ${n} cell(s) clash`,
+  cfSub:'Before merging, <b>you</b> (who opened the PR) decide which to keep', cfUp:'Original (Penguin)', pickOne:'👇 Pick one',
+  cfTheirs:'🐧 Use Penguin\'s color', cfMine:'🧑‍🎨 Use your color', approved:r=>`✅ Bear approved it${r?' (conflict resolved)':''}.`,
+  bearMerging:'🐻 Bear is pressing the "🔀 Merge" button…', mergerNote:'The owner of the original, Bear, does the merge',
+  changesReq:'✋ Bear is <b>requesting changes</b>. Fix it and push.', waiting:'⏳ Waiting for review…',
+  prMeta:(c,n)=>`${c} commit(s) · ${n} cell(s) changed`, changed:'🖼 What changed (pink boxes)', before:'Before', after:'After', commitsL:'💾 Commits included', talkL:'💬 Conversation',
+  merging:'Bear is merging now. Just watch!', mergedDone:'The pull request is merged. Great job!',
+  onMain:f=>`You have <b>main</b> (the real picture) open. Switch to branch "${f}" before drawing`, mainFirst:'The rule: never draw directly on main. Make a branch first 🌿',
+  branchErr:'Write the branch name in lowercase letters (not main)', unsavedSwitch:'You have unsaved changes. Commit or "Undo" before switching',
+  switched:(b,m)=>`🌿 Switched to ${b}. Now you see ${m?'the real picture':'that branch\'s picture'}`, nothingRestore:'Nothing to undo', restored:'↩️ Back to your last save',
+  noChanges:'No changes yet. Draw something before committing', needMsg:'Write a message (a few words on what you changed)', committed:'💾 Saved (committed)!',
+  switchBeforePush:f=>`Switch to branch "${f}" before pushing`, pengToast:'🐧 Penguin\'s change got into the original! Look at the original picture',
+  reviewToast:'🐻 Bear sent a review!', approvedToast:'✅ Bear approved it!', mergedToast:'🎉 Bear merged it!',
+  lockToast:'🔒 This is Bear\'s repository. You can\'t draw on it without permission!', drawOnPc:'Draw on your computer ("Your computer" below)', drawClone:'Draw on your computer, not on GitHub. Clone first',
+  nickNeed:'Please enter a nickname',
+  tOpen:'I added an animal to your picture. I\'d be happy if you could merge it!', tPeng:'🐧 Meanwhile, Penguin\'s pull request #1 was merged into the original',
+  tReview:'Lovely drawing! 🎨 One request: could you add your <b>signature</b> somewhere (even one cell is OK)?',
+  tAdd:(n,k)=>`${n} added ${k} commit(s)`, tApprove:'The signature looks great! Approved ✅',
+  tCf:m=>`You resolved the conflict: kept ${m?'your':'Penguin\'s'} color`, tThanks:'Merged. Thank you! 🎉',
+  lFork:'# On GitHub, press "Fork" on Bear\'s repository', lForkOut:id=>`→ github.com/${id}/oekaki was created`, lPR:'# Create a "Pull request" on GitHub',
+  lPeng:'# (meanwhile, Penguin\'s #1 was merged into the original)', lMerge:'# (Bear, the owner, pressed "Merge pull request" on GitHub)',
+  lSync:'# On GitHub, press "Sync fork" on your fork', changedOut:n=>`1 file changed (${n} cells)`, pullOut:'oekaki.png | updated',
+  m1:'Drew the sky and grass', m2:'Drew a tree', m3:'Added the sun and a cloud', mPeng:'Made a flower bloom (#1)',
+  popMerge:'A commit that joins two lines of work', popSave:'The picture at this point (save point)',
+  wTitle:'🎨 Let\'s add to Bear\'s picture',
+  wIntro:'Bear has shared a picture on GitHub. You\'ll add your favorite animal to it and get it <b>merged</b> into Bear\'s project. Programmers around the world use this same flow to build software together.',
+  castMeSub:'adds to the picture', castBearSub:'owns the picture (original)', castPengSub:'another contributor', nickLabel:'Your nickname', nickPh:'e.g. Yu', start:'Start ▶',
+  prDefault:'Added an animal',
+  dictTitle:'📖 Word Book',
+  dict:[['📚','Repository','A storage box for a project. It holds not only the current picture but the whole history of saves.',['git init']],
+    ['💾','Commit','A save point, like in a game. It records when, who and what changed, with a message. You can go back to any save.',['git add file','git commit -m "message"']],
+    ['🌿','Branch','A separate page for trying things out. You can draw freely without messing up the real picture (main).',['git switch -c branch-name']],
+    ['🍴','Fork','Copying someone else\'s whole repository into your own GitHub account. It\'s your copy, so you can change it freely.',['Fork button on GitHub']],
+    ['⬇️','Clone','Copying a repository from GitHub to your own computer.',['git clone URL']],
+    ['⬆️','Push','Sending the commits you made on your computer to GitHub. Until you push, they stay only on your computer.',['git push origin branch-name']],
+    ['📨','Pull request (PR)','A request that says "Could you add my changes to your project?" People also discuss the changes here.',['Pull request button on GitHub']],
+    ['🔍','Review','Checking changes and leaving comments. If you fix things and push to the same branch, the PR updates automatically.',[]],
+    ['🔀','Merge','Combining a branch\'s changes into the real project.',['Merge button on GitHub']],
+    ['⚡','Conflict','When two people change the same spot in different ways and the changes "crash". A human decides which to keep.',[]],
+    ['🔄','Sync & Pull','Bringing new changes from the original or GitHub into your fork or computer. A fork does not update by itself.',['Sync fork','git pull']]],
+  teacherSum:'Notes for teachers (how this maps to real Git, and what is simplified)',
+  teacher:['The 12×12 picture stands for a single file in the repository (<code>oekaki.png</code>). Changing one cell is like changing one line of a text file.',
+    '<code>git add</code> (staging) and <code>git commit</code> are combined into one button. The "real commands" panel at the top shows both.',
+    'The original repo is treated as <code>upstream</code> and the student\'s fork as <code>origin</code>. Setting up remotes is skipped.',
+    'Midway, a third person\'s (Penguin\'s) PR is merged into the original, so it moves ahead. A conflict happens only when both sides changed the same cell (cell-level 3-way merge).',
+    'Merging uses a merge commit and is done by the owner (Bear). Updating the fork is shown with GitHub\'s "Sync fork", and updating the computer with <code>git pull</code>.',
+    'Everything runs inside this page; nothing is sent anywhere. Reload or press "Start over" to reset.'],
+  foot:'by yandod · On the real GitHub, button positions and names may differ a little'
+},
+ko:{
+  htmlLang:'ko', title:'🎨 동물 그림으로 배우는 Git과 GitHub', sub:'곰의 그림에 좋아하는 동물을 그려 넣어 보자 — 포크부터 머지까지 체험',
+  reset:'↺ 처음부터', cloud:'☁️ GitHub (인터넷 위)', pc:'💻 내 컴퓨터',
+  bear:'곰', peng:'펭귄', you:'나',
+  palette:['하양','하늘','풀','갈색','노랑','빨강','분홍','검정','주황','보라','파랑','진초록'],
+  tipR:'👈 여기를 누르세요!', tipU:'👇 여기!', tipC:'👆 이 그림을 클릭!',
+  flow:['포크','클론','브랜치','커밋','푸시','풀 리퀘스트','리뷰','머지','동기화 · 풀'],
+  nav:'내비', missionH:'🎯 지금 할 일', logHead:'⌨️ 실제 명령어로는…', logEmpty:'(버튼을 누르면 실제 Git에서는 어떤 명령어인지 여기에 나와요)',
+  guide(s,S,f){switch(s){
+    case 0:return {say:'먼저 닉네임을 알려 주세요.',mission:'닉네임을 입력하고 "시작하기"'};
+    case 1:return S.tried?{say:'맞아요! 다른 사람의 작품에는 마음대로 그릴 수 없어요.<br>그래서 <b>포크</b>를 해요. 곰의 저장소를 통째로 복사해서 GitHub 안에 <b>나만의 보관함</b>을 만드는 거예요.',mission:'원본의 "🍴 포크" 버튼을 누르세요'}
+      :{say:'위에 있는 것은 🐻곰의 <b>저장소</b>(작품 보관함)예요. 나(🧑‍🎨)의 것이 아니에요.<br>그림 아래의 ● 는 <b>커밋</b> = 세이브 포인트예요. 누르면 그때의 그림을 볼 수 있어요.',mission:'곰의 그림을 클릭해서 그려 보세요',tip:'● 를 클릭하면 "타임머신"처럼 예전 그림을 볼 수 있어요.'};
+    case 2:return {say:'GitHub 안에 <b>내 포크</b>가 생겼어요! 여기는 내 공간이니까 자유롭게 바꿔도 돼요.<br>하지만 그림은 내 컴퓨터에서 그리는 게 더 편해요. 포크를 내 컴퓨터로 <b>클론</b>(복사)해요.',mission:'포크의 "⬇️ 클론" 버튼을 누르세요',tip:'포크의 커밋 기록을 보세요. 곰이 그렸던 기록도 통째로 복사되었어요.'};
+    case 3:return {say:'그림이 내 컴퓨터에 도착했어요! 하지만 바로 그리기 시작하지는 마세요.<br>먼저 <b>브랜치</b>를 만들어요. 브랜치는 "연습용 별도 페이지"예요. <code>main</code>(진짜 그림)을 망가뜨리지 않고 안심하고 그릴 수 있어요.',mission:'브랜치 이름을 확인하고 "만들기"를 누르세요'};
+    case 4:return {say:`브랜치 ${f}(으)로 바뀌었어요. 자, 좋아하는 동물을 그려 보세요!<br>다 그렸으면 무엇을 바꿨는지 <b>메시지</b>로 쓰고 <b>커밋</b>해요. 커밋은 게임의 <b>세이브</b> 같은 거예요.`,mission:'내 컴퓨터의 그림에 그리고 → "💾 커밋"',tip:'점선으로 둘러싸인 칸은 아직 저장하지 않은 변경이에요. "↩️ 되돌리기"로 마지막 저장으로 돌아갈 수 있어요.'};
+    case 5:return {say:'저장했어요! 그래프에 새로운 ● 가 생겼죠. 몇 번이든 커밋해도 돼요.<br>하지만 이 커밋은 아직 <b>내 컴퓨터에만</b> 있어요. GitHub의 포크로 보내는 <b>푸시</b>를 해요.',mission:'내 컴퓨터의 "⬆️ 푸시"를 누르세요',tip:`브랜치를 <code>main</code>으로 바꿔 보세요. 그림이 원래대로 돌아가요! 다시 ${f}를 누르면 내 그림이 나와요.`};
+    case 6:return {say:'포크에 내 브랜치가 도착했어요!<br>이제 곰에게 부탁해요. <b>풀 리퀘스트</b>는 "제 변경을 당신의 작품에 넣어 주시겠어요?"라는 부탁 편지예요.',mission:'포크에서 제목을 쓰고 "만들기"를 누르세요'};
+    case 7:return S.pr.review?{say:'곰에게서 <b>리뷰</b>(확인과 댓글)가 왔어요!<br>풀 리퀘스트는 같은 브랜치에 커밋하고 푸시하면 <b>내용이 자동으로 바뀌어요</b>.',mission:'사인을 그려 넣고 → 💾 커밋 → ⬆️ 푸시'}
+      :{say:'풀 리퀘스트를 보냈어요. 곰이 볼 때까지 잠깐 기다려요…',mission:'곰의 답장을 기다리세요 (위의 풀 리퀘스트를 보세요)',tip:S.pengDone?'어? 기다리는 동안 펭귄의 변경이 원본에 들어간 것 같아요. 원본의 그림과 그래프를 보세요.':''};
+    case 8:return (S.cf.length&&!S.cfChoice)?{say:'어라? 펭귄의 꽃과 <b>같은 칸</b>에 나도 다른 색을 칠했나 봐요. 이것을 <b>충돌</b>(컨플릭트)이라고 해요.<br>어느 색으로 할지는 컴퓨터가 정할 수 없어요. 사람이 정해요.',mission:'풀 리퀘스트에서 어느 색으로 할지 고르세요'}
+      :{say:'좋아요! 곰이 OK했어요.<br>원본(main)에 내 변경을 합치는 <b>머지</b>는 작품 주인인 🐻곰이 해요. 나는 버튼을 누르지 않아도 돼요.',mission:'🐻 곰이 머지하는 것을 지켜보세요'};
+    case 9:return {say:'해냈어요! 내 그림이 곰의 작품의 일부가 되었어요 🎉 이것을 <b>기여</b>(컨트리뷰트)라고 해요.<br>그런데 잠깐. 내 포크를 보세요. 펭귄의 꽃이 없죠? <b>포크는 저절로 새로워지지 않아요</b>.',mission:'포크의 "🔄 동기화 (Sync fork)"를 누르세요'};
+    case 10:return {say:'포크가 원본과 같아졌어요. 마지막으로 내 컴퓨터에도 가져와요.<br>GitHub에서 내 컴퓨터로 가져오는 것을 <b>풀</b>이라고 해요.',mission:'내 컴퓨터의 "⬇️ 풀"을 누르세요'};
+    case 11:return {say:'이제 모두 같아졌어요! 세 곳의 그림이 똑같네요.<br>포크 → 클론 → 브랜치 → 커밋 → 푸시 → 풀 리퀘스트 → 머지. 전 세계 프로그래머들도 이 흐름으로 함께 소프트웨어를 만들어요.',mission:'🎓 클리어! 아래 "용어 사전"으로 복습해요',tip:'다시 하려면 오른쪽 위의 "처음부터"를 누르세요. 펭귄의 꽃(오른쪽 아래) 자리에 일부러 그리면 충돌을 체험할 수 있어요.'};
+  }},
+  upTitle:'곰의 <b>원본</b> 저장소', upTag:'원본 upstream', lockOnly:'🔒 곰만 가능', forked:'✓ 포크 완료', forkBtn:'🍴 포크',
+  forkSubFirst:'먼저 왼쪽 그림을 클릭해 보세요', forkSub:'나만의 복사본 만들기', pengMerged:'🐧 펭귄의 #1이 머지됨', mineMerged:'🧑‍🎨 나의 #2가 머지됨',
+  histUp:'커밋 기록 (● 를 누르면 그때의 그림)', hist:'커밋 기록', histLocal:'커밋 기록 (초록 라벨이 지금 열려 있는 브랜치)',
+  forkPh:'🍴 아직 포크하지 않았어요<br><small>포크하면 여기에 <b>나만의 복사본</b>이 생겨요</small>',
+  cloneBtn:'⬇️ 클론', cloneSub:'내 컴퓨터로 복사', cloned:'✓ 클론 완료', prH:'📨 풀 리퀘스트', titlePh:'제목', create:'만들기',
+  prSent:'📨 풀 리퀘스트 #2를 보냄', behind:n=>`⚠️ 원본보다 커밋 ${n}개 뒤처져 있어요`, syncBtn:'🔄 동기화 (Sync fork)', same:'✓ 원본과 같음',
+  forkTitle:n=>`<b>나</b>(${n})의 <b>포크</b>`, forkTag:'포크 origin',
+  localPh:'💻 아직 클론하지 않았어요<br><small>클론하면 여기서 그림을 그릴 수 있어요</small>', here:'지금 여기',
+  branchH:'🌿 브랜치 만들기', branchHint:'영어 소문자·숫자·하이픈으로 이름을 지어요', commitH:'💾 커밋 (저장)',
+  unsaved:n=>`저장하지 않은 변경: <b>${n}칸</b>`, noChange:'변경 없음', msgPh:'예: 고양이를 그렸어요', commitBtn:'💾 커밋', restoreBtn:'↩️ 되돌리기',
+  pushH:'⬆️ 푸시 (GitHub로 보내기)', notPushed:n=>`아직 보내지 않은 커밋: <b>${n}개</b>`, noUnpushed:'보내지 않은 커밋이 없어요', pushBtn:'⬆️ 푸시',
+  pullH:'⬇️ 풀 (GitHub에서 가져오기)', pullSub:'main으로 바꾸고 포크의 새 그림을 가져와요', pullBtn:'⬇️ 풀',
+  allSameH:'✅ 모두 같아요', allSameSub:'원본·포크·내 컴퓨터의 main이 같은 그림이 되었어요', localTitle:'<b>내</b> 컴퓨터의 저장소', localTag:'로컬',
+  mergedBox:'🎉 <b>머지되었어요!</b> 내 변경이 원본의 main에 들어갔어요.', cfTitle:n=>`⚡ 충돌: ${n}칸이 부딪혔어요`,
+  cfSub:'머지 전에 PR을 보낸 <b>내</b>가 어느 쪽으로 할지 정해요', cfUp:'원본 (펭귄)', pickOne:'👇 하나를 고르세요',
+  cfTheirs:'🐧 펭귄의 색으로', cfMine:'🧑‍🎨 내 색으로', approved:r=>`✅ 곰이 승인했어요${r?' (충돌 해결 완료)':''}.`,
+  bearMerging:'🐻 곰이 "🔀 Merge" 버튼을 누르고 있어요…', mergerNote:'머지는 원본 주인인 곰이 해요',
+  changesReq:'✋ 곰이 <b>변경을 요청</b>했어요. 고쳐서 푸시해요.', waiting:'⏳ 리뷰 기다리는 중…',
+  prMeta:(c,n)=>`커밋 ${c}개 · ${n}칸 변경`, changed:'🖼 바뀐 곳 (분홍 테두리)', before:'전', after:'후', commitsL:'💾 포함된 커밋', talkL:'💬 대화',
+  merging:'지금은 곰이 머지하는 중이에요. 지켜봐요!', mergedDone:'풀 리퀘스트가 머지되었어요. 수고했어요!',
+  onMain:f=>`지금은 <b>main</b>(진짜 그림)이 열려 있어요. 브랜치 "${f}"(으)로 바꾼 뒤 그려요`, mainFirst:'main에는 바로 그리지 않는 게 약속이에요. 먼저 브랜치를 만들어요 🌿',
+  branchErr:'브랜치 이름을 영어 소문자로 써 주세요 (main 말고)', unsavedSwitch:'저장하지 않은 변경이 있어요. 커밋하거나 "되돌리기"를 한 뒤 바꿔요',
+  switched:(b,m)=>`🌿 ${b}(으)로 바꿨어요. 그림이 ${m?'진짜 그림':'그 브랜치의 그림'}으로 바뀌었죠`, nothingRestore:'되돌릴 변경이 없어요', restored:'↩️ 마지막 저장으로 돌아갔어요',
+  noChanges:'아직 변경이 없어요. 그림을 그린 뒤 커밋해요', needMsg:'메시지를 써요 (무엇을 바꿨는지 한마디)', committed:'💾 저장(커밋)했어요!',
+  switchBeforePush:f=>`브랜치 "${f}"(으)로 바꾼 뒤 푸시해요`, pengToast:'🐧 펭귄의 변경이 원본에 들어갔어요! 원본 그림을 보세요',
+  reviewToast:'🐻 곰에게서 리뷰가 왔어요!', approvedToast:'✅ 곰이 승인했어요!', mergedToast:'🎉 곰이 머지했어요!',
+  lockToast:'🔒 이건 곰의 저장소예요. 마음대로 그릴 수 없어요!', drawOnPc:'그림은 내 컴퓨터에서 그려요 (아래 "내 컴퓨터")', drawClone:'GitHub 위가 아니라 내 컴퓨터에서 그려요. 먼저 클론하세요',
+  nickNeed:'닉네임을 입력해 주세요',
+  tOpen:'곰의 그림에 동물을 그려 넣었어요. 넣어 주시면 기쁘겠어요!', tPeng:'🐧 그사이에 펭귄의 풀 리퀘스트 #1이 원본에 머지되었어요',
+  tReview:'멋진 그림이네요! 🎨 부탁이 하나 있어요. 그림 어딘가에 <b>사인</b>(한 칸이라도 OK)을 그려 줄래요?',
+  tAdd:(n,k)=>`${n} 님이 커밋 ${k}개를 추가했어요`, tApprove:'사인도 완벽해요! 승인할게요 ✅',
+  tCf:m=>`내가 충돌을 해결: ${m?'내':'펭귄의'} 색으로 정했어요`, tThanks:'머지했어요. 고마워요! 🎉',
+  lFork:'# GitHub에서 곰의 저장소의 "Fork" 버튼을 누름', lForkOut:id=>`→ github.com/${id}/oekaki 생성됨`, lPR:'# GitHub에서 "Pull request"를 만듦',
+  lPeng:'# (그사이에 펭귄의 #1이 원본에 머지됨)', lMerge:'# (원본 주인인 곰이 GitHub에서 "Merge pull request"를 누름)',
+  lSync:'# GitHub에서 포크의 "Sync fork" 버튼을 누름', changedOut:n=>`1 file changed (${n}칸)`, pullOut:'oekaki.png | 갱신',
+  m1:'하늘과 풀밭을 그렸어요', m2:'나무를 그렸어요', m3:'해와 구름을 그려 넣었어요', mPeng:'꽃을 피웠어요 (#1)',
+  popMerge:'두 흐름을 합친 커밋', popSave:'이때의 그림 (세이브 포인트)',
+  wTitle:'🎨 곰의 그림에 그려 넣으러 가요',
+  wIntro:'곰이 GitHub에 공개한 그림에 좋아하는 동물을 그려 넣고, 곰의 작품에 <b>합쳐지기</b>까지의 과정을 체험해요. 전 세계 프로그래머들이 함께 소프트웨어를 만들 때도 같은 흐름을 써요.',
+  castMeSub:'그림을 그려 넣는 사람', castBearSub:'그림(원본)의 주인', castPengSub:'다른 참가자', nickLabel:'내 닉네임', nickPh:'예: 유', start:'시작하기 ▶',
+  prDefault:'동물을 그려 넣었어요',
+  dictTitle:'📖 용어 사전',
+  dict:[['📚','저장소 (리포지토리)','작품을 보관하는 상자. 지금 그림뿐 아니라 지금까지의 저장 기록(역사)도 모두 들어 있어요.',['git init']],
+    ['💾','커밋','게임의 세이브 포인트. "언제, 누가, 무엇을 바꿨는지"를 메시지와 함께 기록해요. 언제든 그때의 그림으로 돌아갈 수 있어요.',['git add 파일','git commit -m "메시지"']],
+    ['🌿','브랜치','연습용 별도 페이지. 진짜 그림(main)을 망가뜨리지 않고 마음껏 그리고 시험해 볼 수 있어요.',['git switch -c 브랜치이름']],
+    ['🍴','포크','다른 사람의 저장소를 통째로 복사해서 내 GitHub에 두는 것. 내 복사본이니까 자유롭게 바꿀 수 있어요.',['GitHub의 Fork 버튼']],
+    ['⬇️','클론','GitHub에 있는 저장소를 내 컴퓨터로 복사해 오는 것.',['git clone URL']],
+    ['⬆️','푸시','내 컴퓨터에서 한 커밋을 GitHub로 보내는 것. 보내기 전까지는 내 컴퓨터에만 있는 변경이에요.',['git push origin 브랜치이름']],
+    ['📨','풀 리퀘스트 (PR)','"제 변경을 당신의 작품에 넣어 주시겠어요?"라는 부탁. 이야기도 여기서 나눠요.',['GitHub의 Pull request 버튼']],
+    ['🔍','리뷰','변경을 확인하고 댓글을 다는 것. 고쳐서 같은 브랜치에 푸시하면 PR 내용도 자동으로 바뀌어요.',[]],
+    ['🔀','머지','브랜치의 변경을 합쳐서 진짜 작품에 넣는 것.',['GitHub의 Merge 버튼']],
+    ['⚡','충돌 (컨플릭트)','같은 곳을 서로 다르게 바꿔서 "부딪히는" 것. 어느 쪽으로 할지는 사람이 정해요.',[]],
+    ['🔄','동기화 · 풀','원본이나 GitHub의 새로운 변경을 내 포크나 컴퓨터로 가져오는 것. 포크는 저절로 새로워지지 않아요.',['Sync fork','git pull']]],
+  teacherSum:'선생님용 메모 (실제 Git과의 대응, 생략한 부분)',
+  teacher:['12×12칸 그림 한 장을 저장소 안의 파일 하나(<code>oekaki.png</code>)로 봅니다. 한 칸을 바꾸는 것이 텍스트 파일 한 줄을 바꾸는 것에 해당합니다.',
+    '<code>git add</code>(스테이징)와 <code>git commit</code>을 버튼 하나로 합쳤습니다. 위쪽의 "실제 명령어" 창에는 둘 다 표시합니다.',
+    '원본 저장소를 <code>upstream</code>, 학생의 포크를 <code>origin</code>으로 다룹니다. 원격 저장소 등록 과정은 생략했습니다.',
+    '중간에 제3자(펭귄)의 PR이 원본에 머지되어 원본이 앞서 나가는 상황을 만듭니다. 양쪽이 같은 칸을 바꾼 경우에만 충돌이 납니다(칸 단위 3-way 머지).',
+    '머지는 머지 커밋 방식이며 원본 주인(곰)이 합니다. 포크 갱신은 GitHub의 "Sync fork", 내 컴퓨터 갱신은 <code>git pull</code>로 표현했습니다.',
+    '모든 데이터는 이 페이지 안에서만 움직이며 어디에도 전송되지 않습니다. 새로고침이나 "처음부터"로 초기화됩니다.'],
+  foot:'by yandod · 실제 GitHub에서는 버튼 위치나 이름이 조금 다를 수 있어요'
+}};
+let LANG='ja';
+try{const sv=localStorage.getItem('git-oekaki-lang');if(I18N[sv])LANG=sv;else{const nl=(navigator.language||'').slice(0,2);if(I18N[nl])LANG=nl;}}catch(e){}
+if(['ja','en','ko'].includes(location.hash.slice(1)))LANG=location.hash.slice(1);
+const T=()=>I18N[LANG];
+function tr(k,...a){const v=T()[k];return typeof v==='function'?v(...a):v;}
+
+/* ===================================================================== */
 const W=12, N=W*W;
-const PAL=[['#ffffff','しろ'],['#a8d8ff','そら'],['#7cc66b','くさ'],['#8b5a2b','ちゃいろ'],['#ffd84d','きいろ'],['#ff6b6b','あか'],['#ff9ecb','ピンク'],['#333333','くろ'],['#ff9f43','オレンジ'],['#a17fe0','むらさき'],['#3d7be0','あお'],['#2e8b57','こいみどり']];
-const AUTH={bear:{name:'クマさん',e:'🐻',c:'#b07040'},peng:{name:'ペンギンさん',e:'🐧',c:'#4a6fa5'},me:{name:'あなた',e:'🧑‍🎨',c:'#3d7be0'}};
+const PAL=['#ffffff','#a8d8ff','#7cc66b','#8b5a2b','#ffd84d','#ff6b6b','#ff9ecb','#333333','#ff9f43','#a17fe0','#3d7be0','#2e8b57'];
+const AUTH={bear:{e:'🐻',c:'#b07040'},peng:{e:'🐧',c:'#4a6fa5'},me:{e:'🧑‍🎨',c:'#3d7be0'}};
+const aName=k=>k==='me'?(S.me?S.me.name:tr('you')):tr(k);
 const commits={}; let seq=0; let S;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hex=()=>Array.from({length:7},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('');
-function mk(p,msg,author,parents,lane){const id='c'+(++seq);commits[id]={id,seq,p:p.slice(),msg,author,parents,lane,hash:hex()};return id;}
+function mk(p,msg,author,parents,lane,key){const id='c'+(++seq);commits[id]={id,seq,p:p.slice(),msg,key,author,parents,lane,hash:hex()};return id;}
+const cmsg=c=>c.key?tr(c.key):c.msg;
 const P=id=>commits[id].p;
 function setPx(p,list,v){list.forEach(([r,c])=>p[r*W+c]=v);}
 function reach(heads){const s=new Set(),st=heads.filter(Boolean);while(st.length){const id=st.pop();if(s.has(id))continue;s.add(id);commits[id].parents.forEach(x=>st.push(x));}return s;}
@@ -240,15 +495,33 @@ function diffIdx(a,b){const r=[];for(let i=0;i<N;i++)if(a[i]!==b[i])r.push(i);re
 function init(){
   for(const k in commits)delete commits[k]; seq=0;
   const p1=new Array(N).fill(1); for(let r=8;r<W;r++)for(let c=0;c<W;c++)p1[r*W+c]=2;
-  const c1=mk(p1,'そらと草原をかいた','bear',[],0);
+  const c1=mk(p1,'','bear',[],0,'m1');
   const p2=p1.slice(); setPx(p2,[[3,2],[4,1],[4,2],[4,3],[5,1],[5,2],[5,3]],11); setPx(p2,[[6,2],[7,2]],3);
-  const c2=mk(p2,'木をかいた','bear',[c1],0);
+  const c2=mk(p2,'','bear',[c1],0,'m2');
   const p3=p2.slice(); setPx(p3,[[1,9],[1,10],[2,9],[2,10]],4); setPx(p3,[[1,5],[2,4],[2,5],[2,6]],0);
-  const c3=mk(p3,'たいようと雲を足した','bear',[c2],0);
+  const c3=mk(p3,'','bear',[c2],0,'m3');
   (S&&S.timers||[]).forEach(clearTimeout);
   S={step:0,me:null,up:{main:c3},fork:null,local:null,feat:null,forkBase:c3,pr:null,tried:false,
-     log:[],drafts:{branch:'',msg:'',pr:''},forkView:'main',color:7,timers:[],cfChoice:null,popId:null};
+     log:[],drafts:{branch:'',msg:'',pr:''},forkView:'main',color:7,timers:[],cfChoice:null,popId:null,cf:[]};
   hidePop(); render(); showWelcome();
+}
+
+/* ---------- static text & language ---------- */
+function renderStatic(){
+  const t=T();document.documentElement.lang=t.htmlLang;document.title=t.title.replace(/^🎨\s*/,'');
+  $('#tTitle').textContent=t.title;$('#tSub').textContent=t.sub;$('#tReset').textContent=t.reset;$('#tCloud').textContent=t.cloud;$('#tPc').textContent=t.pc;$('#tFoot').textContent=t.foot;
+  const rs=document.documentElement.style;rs.setProperty('--tipR',JSON.stringify(t.tipR));rs.setProperty('--tipU',JSON.stringify(t.tipU));rs.setProperty('--tipC',JSON.stringify(t.tipC));
+  document.querySelectorAll('.lang').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
+  const open=$('#dict details')?.open;
+  $('#dict').innerHTML=`<h2>${t.dictTitle}</h2><div class="dgrid">${t.dict.map(([e,n,d,cs])=>`<div class="dcard"><div class="t"><span>${e}</span>${n}</div><p>${d}</p>${cs.map(c=>`<code>${esc(c)}</code>`).join(' ')}</div>`).join('')}</div>
+    <details class="teacher"${open?' open':''}><summary>${t.teacherSum}</summary><ul>${t.teacher.map(x=>`<li>${x}</li>`).join('')}</ul></details>`;
+}
+function setLang(l){
+  if(!I18N[l]||l===LANG)return;const old=I18N[LANG];LANG=l;
+  try{localStorage.setItem('git-oekaki-lang',l);}catch(e){}
+  if(S.drafts.pr===old.prDefault)S.drafts.pr=T().prDefault;
+  renderStatic();render();if($('#welcome').style.display!=='none'){const v=$('#nick')?.value||'';showWelcome();$('#nick').value=v;}
+  if(S.popId)hidePop();
 }
 
 /* ---------- drawing ---------- */
@@ -256,7 +529,7 @@ function drawCanvas(cv,o){
   const size=+cv.dataset.size, dpr=window.devicePixelRatio||1;
   cv.width=size*dpr; cv.height=size*dpr; cv.style.width='100%'; cv.style.maxWidth=size+'px';
   const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); const cs=size/W;
-  for(let i=0;i<N;i++){g.fillStyle=PAL[o.p[i]][0];g.fillRect((i%W)*cs,Math.floor(i/W)*cs,cs+.6,cs+.6);}
+  for(let i=0;i<N;i++){g.fillStyle=PAL[o.p[i]];g.fillRect((i%W)*cs,Math.floor(i/W)*cs,cs+.6,cs+.6);}
   if(cv.dataset.grid){g.strokeStyle='rgba(0,0,0,.07)';g.lineWidth=1;for(let k=1;k<W;k++){g.beginPath();g.moveTo(k*cs,0);g.lineTo(k*cs,size);g.moveTo(0,k*cs);g.lineTo(size,k*cs);g.stroke();}}
   if(o.hl&&o.hl.length){g.lineWidth=Math.max(1.5,cs/9);g.strokeStyle=o.hc||'#ff3d7f';if(o.dash)g.setLineDash([cs/5,cs/8]);
     o.hl.forEach(i=>g.strokeRect((i%W)*cs+g.lineWidth/2+1,Math.floor(i/W)*cs+g.lineWidth/2+1,cs-g.lineWidth-2,cs-g.lineWidth-2));g.setLineDash([]);}
@@ -312,13 +585,14 @@ function hintAct(){
 const hint=a=>hintAct()===a?' hint':'';
 function localChanges(){return S.local?diffIdx(P(headId()),S.local.work).length:0;}
 function ahead(){if(!S.feat||!S.local)return 0;return minus(reach([S.local.branches[S.feat]]),reach([S.fork.branches[S.feat]||S.fork.branches.main])).length;}
-function addLog(t,s){S.log.push({t,s});}
+function addLog(t,s,k,...a){S.log.push({t,s,k,a});}
+const logText=l=>l.k?tr(l.k,...l.a):l.s;
 function toast(msg){const t=$('#toast');t.innerHTML=msg;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2800);}
 function fly(from,to,e){const a=$(from)?.getBoundingClientRect(),b=$(to)?.getBoundingClientRect();if(!a||!b)return;
   const el=document.createElement('div');el.className='fly';el.textContent=e||'📦';document.body.appendChild(el);
   const ax=a.left+a.width/2-16,ay=a.top+Math.min(a.height/2,80),bx=b.left+b.width/2-16,by=b.top+Math.min(b.height/2,80);
   el.animate([{transform:`translate(${ax}px,${ay}px) scale(.6)`},{transform:`translate(${(ax+bx)/2}px,${Math.min(ay,by)-60}px) scale(1.4)`},{transform:`translate(${bx}px,${by}px) scale(.8)`}],{duration:1000,easing:'ease-in-out'}).onfinish=()=>el.remove();}
-function celebrate(){const em=['🎉','🎨','⭐','🎊',S.me.e,'🐻','✨'];for(let i=0;i<36;i++){const d=document.createElement('div');d.className='confetti';d.textContent=em[i%em.length];d.style.left=Math.random()*100+'vw';document.body.appendChild(d);
+function celebrate(){const em=['🎉','🎨','⭐','🎊','🧑‍🎨','🐻','✨'];for(let i=0;i<36;i++){const d=document.createElement('div');d.className='confetti';d.textContent=em[i%em.length];d.style.left=Math.random()*100+'vw';document.body.appendChild(d);
   d.animate([{transform:'translateY(0) rotate(0)'},{transform:`translateY(${innerHeight+80}px) rotate(${Math.random()*720-360}deg)`}],{duration:1800+Math.random()*1500,delay:Math.random()*500,easing:'ease-in'}).onfinish=()=>d.remove();}}
 function computeConflicts(){
   if(!S.pr||S.pr.status==='merged')return [];
@@ -327,113 +601,95 @@ function computeConflicts(){
 }
 
 /* ---------- guide ---------- */
-function guide(){
-  const s=S.step,f=S.feat?`<code>${esc(S.feat)}</code>`:'';
-  switch(s){
-    case 0:return {say:'まずはニックネームを教えてね。',mission:'ニックネームを入れて「はじめる」'};
-    case 1:return S.tried?{say:'そう！ 人の作品には、勝手に描きこめないんだ。<br>そこで<b>フォーク</b>。クマさんのリポジトリを丸ごとコピーして、GitHubの中に<b>あなた専用の保管庫</b>を作るよ。',mission:'本家の「🍴 フォーク」ボタンを押そう'}
-      :{say:'上にあるのは、🐻クマさんの<b>リポジトリ</b>（作品の保管庫）。あなた（🧑‍🎨）のものではないよ。<br>絵の下の ● は<b>コミット</b>＝セーブポイント。押すと、そのときの絵が見られるよ。',mission:'ためしに、クマさんの絵をクリックして描きこんでみよう',tip:'● をクリックすると「タイムマシン」みたいに昔の絵が見られるよ。'};
-    case 2:return {say:'GitHubの中に<b>あなたのフォーク</b>ができた！ ここはあなたの場所だから、自由に変えていいよ。<br>でも絵を描くのは手元のパソコンのほうがやりやすい。フォークを自分のパソコンに<b>クローン</b>（コピー）しよう。',mission:'フォークの「⬇️ クローン」ボタンを押そう',tip:'フォークのコミットの歴史を見てみて。クマさんが描いたときの記録も、まるごとコピーされているね。'};
-    case 3:return {say:'パソコンに絵が届いた！ でも、すぐには描き始めないでね。<br>まず<b>ブランチ</b>を作るよ。ブランチは「ためし描き用の別のページ」。<code>main</code>（本番の絵）をよごさずに、安心して描けるんだ。',mission:'ブランチ名を確かめて「🌿 ブランチを作る」を押そう'};
-    case 4:return {say:`ブランチ ${f} に切り替わったよ。さあ、好きな動物を描いてみよう！<br>描けたら、なにを変えたかを<b>メッセージ</b>に書いて<b>コミット</b>。コミットはゲームの<b>セーブ</b>みたいなものだよ。`,mission:'パソコンの絵に描いて →「💾 コミット」',tip:'点線で囲まれたマスが、まだセーブしていない変更。「↩️ 取り消す」で最後のセーブにもどせるよ。'};
-    case 5:return {say:'セーブできた！ グラフに新しい ● が増えたね。何回コミットしてもいいよ。<br>でもこのコミットは、まだ<b>あなたのパソコンの中だけ</b>。GitHubのフォークへ送る<b>プッシュ</b>をしよう。',mission:'パソコンの「⬆️ プッシュ」を押そう',tip:`ためしにブランチを <code>main</code> に切り替えてみて。絵がもとにもどるよ！ もう一度 ${f} を押すと、あなたの絵が出てくる。`};
-    case 6:return {say:'フォークにあなたのブランチが届いた！<br>いよいよクマさんにお願いしよう。<b>プルリクエスト</b>は「ぼくの変更を、あなたの作品に取りこんでくれませんか？」というお願いの手紙だよ。',mission:'フォークでタイトルを書いて「📨 プルリクエストを作る」'};
-    case 7:return S.pr.review?{say:'クマさんから<b>レビュー</b>（チェックとコメント）が届いたよ！<br>プルリクエストは、同じブランチにコミットしてプッシュすると<b>中身が自動で新しくなる</b>んだ。',mission:'サインを描き足して → 💾 コミット → ⬆️ プッシュ'}
-      :{say:'プルリクエストを送ったね。クマさんが見るまで、ちょっと待っててね…',mission:'クマさんの返事を待とう（上のプルリクエストを見てね）',tip:S.pengDone?'あれ？ 待っているあいだに、ペンギンさんの変更が本家に入ったみたい。本家の絵とグラフを見てみて。':''};
-    case 8:return (S.cf.length&&!S.cfChoice)?{say:'あれれ？ ペンギンさんのお花と<b>同じマス</b>に、あなたもちがう色を塗っていたみたい。これを<b>コンフリクト</b>（衝突）と言うよ。<br>どっちの色にするかは、コンピューターでは決められない。人間が決めるんだ。',mission:'プルリクエストで、どちらの色にするかえらぼう'}
-      :{say:'ばっちり！ クマさんがOKを出したよ。<br>本家（main）にあなたの変更を合体させる<b>マージ</b>は、作品の持ち主の🐻クマさんがやるよ。あなたはボタンを押さなくていいんだ。',mission:'🐻 クマさんがマージするのを見守ろう'};
-    case 9:return {say:'やったね！ あなたの絵が、クマさんの作品の一部になった 🎉 これを<b>コントリビュート</b>（貢献）と言うよ。<br>でもちょっと待って。あなたのフォークを見て。ペンギンさんのお花がないね？ <b>フォークは自動では新しくならない</b>んだ。',mission:'フォークの「🔄 同期（Sync fork）」を押そう'};
-    case 10:return {say:'フォークが本家と同じになった。最後に、パソコンにも取りこもう。<br>GitHubから手元に持ってくるのが<b>プル</b>だよ。',mission:'パソコンの「⬇️ プル」を押そう'};
-    case 11:return {say:'これで全部そろった！ 3つの場所の絵が同じになったね。<br>フォーク → クローン → ブランチ → コミット → プッシュ → プルリクエスト → マージ。世界中のプログラマーも、この流れでいっしょにソフトを作っているんだよ。',mission:'🎓 クリア！ 下の「ことばずかん」でふりかえろう',tip:'もう一度やるときは右上の「さいしょから」。わざとペンギンさんのお花（右下）の場所に描くと、コンフリクトを体験できるよ。'};
-  }
-}
-const FLOW=[['フォーク',1],['クローン',2],['ブランチ',3],['コミット',4],['プッシュ',5],['プルリクエスト',6],['レビュー',7],['マージ',8],['同期・プル',9]];
 function renderFlow(){
-  $('#flow').innerHTML=FLOW.map(([n,st],i)=>{const done=S.step>st&&!(st===9&&S.step<11),now=S.step===st||(st===9&&S.step===10);
+  $('#flow').innerHTML=T().flow.map((n,i)=>{const st=i+1,done=S.step>st&&!(st===9&&S.step<11),now=S.step===st||(st===9&&S.step===10);
     return (i?'<span class="chip-arrow">→</span>':'')+`<span class="chip ${S.step>=11||done&&!now?'done':now?'now':''}">${n}</span>`;}).join('');
 }
 function renderGuide(){
-  const g=guide();
-  const logHtml=S.log.length?S.log.map(l=>`<div class="${l.t}">${esc(l.s)}</div>`).join(''):'<div class="o">（ボタンを押すと、本物のGitではどんなコマンドになるかがここに出るよ）</div>';
-  $('#guide').innerHTML=`<div class="bubble"><div class="who"><span>🧭</span>ナビ</div><div>${g.say}</div></div>
-   <div class="col"><div class="mission">🎯 いまやること<br>${g.mission}</div>${g.tip?`<div class="tip">💡 ${g.tip}</div>`:''}</div>
-   <div class="term" id="term"><div class="h">⌨️ 本物のコマンドだと…</div>${logHtml}</div>`;
-  const t=$('#term');t.scrollTop=t.scrollHeight;
+  const t=T(),g=t.guide(S.step,S,S.feat?`<code>${esc(S.feat)}</code>`:'');
+  const logHtml=S.log.length?S.log.map(l=>`<div class="${l.t}">${esc(logText(l))}</div>`).join(''):`<div class="o">${t.logEmpty}</div>`;
+  $('#guide').innerHTML=`<div class="bubble"><div class="who"><span>🧭</span>${t.nav}</div><div>${g.say}</div></div>
+   <div class="col"><div class="mission">${t.missionH}<br>${g.mission}</div>${g.tip?`<div class="tip">💡 ${g.tip}</div>`:''}</div>
+   <div class="term" id="term"><div class="h">${t.logHead}</div>${logHtml}</div>`;
+  const tm=$('#term');tm.scrollTop=tm.scrollHeight;
 }
 
 /* ---------- zones ---------- */
 function zUp(){
-  return `<div class="zone-head"><span class="ava" style="background:#f3e3d3">🐻</span><div><div class="zt">クマさんの<b>本家</b>リポジトリ</div><div class="url">github.com/kuma/oekaki</div></div><span class="tag up">本家 upstream</span></div>
+  const t=T();
+  return `<div class="zone-head"><span class="ava" style="background:#f3e3d3">🐻</span><div><div class="zt">${t.upTitle}</div><div class="url">github.com/kuma/oekaki</div></div><span class="tag up">${t.upTag}</span></div>
   <div class="tabs"><span class="tab on">🌿 main</span></div>
-  <div class="row"><div class="cvwrap${hintAct()==='upcv'?' cvhint':''}" style="width:168px"><canvas data-pix="up" data-size="168" data-click="up"></canvas><div class="lock">🔒 クマさんだけ</div></div>
+  <div class="row"><div class="cvwrap${hintAct()==='upcv'?' cvhint':''}" style="width:168px"><canvas data-pix="up" data-size="168" data-click="up"></canvas><div class="lock">${t.lockOnly}</div></div>
    <div class="side">
-    ${S.fork?'<div class="small ok">✓ フォーク済み</div>':`<button class="btn${hint('fork')}" data-act="fork" ${S.step===1&&S.tried?'':'disabled'}>🍴 フォーク</button><div class="small">${S.step===1&&!S.tried?'まずは左の絵をクリックしてみよう':'自分用のコピーを作る'}</div>`}
-    ${S.pengDone?'<div class="small">🐧 ペンギンさんの #1 がマージされた</div>':''}
-    ${S.pr&&S.pr.status==='merged'?`<div class="small ok">🧑‍🎨 あなたの #2 がマージされた</div>`:''}
+    ${S.fork?`<div class="small ok">${t.forked}</div>`:`<button class="btn${hint('fork')}" data-act="fork" ${S.step===1&&S.tried?'':'disabled'}>${t.forkBtn}</button><div class="small">${S.step===1&&!S.tried?t.forkSubFirst:t.forkSub}</div>`}
+    ${S.pengDone?`<div class="small">${t.pengMerged}</div>`:''}
+    ${S.pr&&S.pr.status==='merged'?`<div class="small ok">${t.mineMerged}</div>`:''}
    </div></div>
-  <div class="glabel">コミットの歴史（● を押すと、そのときの絵）</div>${graph(S.up,null)}`;
+  <div class="glabel">${t.histUp}</div>${graph(S.up,null)}`;
 }
 function zFork(){
-  if(!S.fork)return `<div class="ph"><div>🍴 まだフォークしていません<br><small>フォークすると、ここに<b>あなた専用のコピー</b>ができます</small></div></div>`;
+  const t=T();
+  if(!S.fork)return `<div class="ph"><div>${t.forkPh}</div></div>`;
   const br=S.fork.branches;if(!br[S.forkView])S.forkView='main';
   const behind=minus(reach([S.up.main]),reach([br.main])).length;
   let side='';
-  if(S.step===2)side+=`<button class="btn blue${hint('clone')}" data-act="clone">⬇️ クローン</button><div class="small">パソコンにコピーする</div>`;
-  else if(S.local)side+='<div class="small ok">✓ クローン済み</div>';
-  if(S.step===6)side+=`<div class="box"><h4>📨 プルリクエスト</h4><div class="small">${esc(S.me.id)}:${esc(S.feat)} → kuma:main</div><div class="field" style="margin-top:6px"><input data-draft="pr" placeholder="タイトル" value="${esc(S.drafts.pr)}"><button class="btn${hint('pr')} up-tip" data-act="pr">作る</button></div></div>`;
-  if(S.pr)side+=`<div class="small">📨 プルリクエスト #2 を出した</div>`;
-  if(S.step>=9&&behind>0)side+=`<div class="small warn">⚠️ 本家より ${behind} コミット遅れています</div>`;
-  if(S.step===9)side+=`<button class="btn blue${hint('sync')}" data-act="sync">🔄 同期（Sync fork）</button>`;
-  if(S.step>=10&&behind===0)side+='<div class="small ok">✓ 本家と同じ</div>';
-  return `<div class="zone"><div class="zone-head"><span class="ava" style="background:${S.me.c}33">${S.me.e}</span><div><div class="zt"><b>あなた</b>（${esc(S.me.name)}）の<b>フォーク</b></div><div class="url">github.com/${esc(S.me.id)}/oekaki</div></div><span class="tag or">フォーク origin</span></div>
+  if(S.step===2)side+=`<button class="btn blue${hint('clone')}" data-act="clone">${t.cloneBtn}</button><div class="small">${t.cloneSub}</div>`;
+  else if(S.local)side+=`<div class="small ok">${t.cloned}</div>`;
+  if(S.step===6)side+=`<div class="box"><h4>${t.prH}</h4><div class="small">${esc(S.me.id)}:${esc(S.feat)} → kuma:main</div><div class="field" style="margin-top:6px"><input data-draft="pr" placeholder="${t.titlePh}" value="${esc(S.drafts.pr)}"><button class="btn${hint('pr')} up-tip" data-act="pr">${t.create}</button></div></div>`;
+  if(S.pr)side+=`<div class="small">${t.prSent}</div>`;
+  if(S.step>=9&&behind>0)side+=`<div class="small warn">${t.behind(behind)}</div>`;
+  if(S.step===9)side+=`<button class="btn blue${hint('sync')}" data-act="sync">${t.syncBtn}</button>`;
+  if(S.step>=10&&behind===0)side+=`<div class="small ok">${t.same}</div>`;
+  return `<div class="zone"><div class="zone-head"><span class="ava" style="background:#dbe9ff">🧑‍🎨</span><div><div class="zt">${t.forkTitle(esc(S.me.name))}</div><div class="url">github.com/${esc(S.me.id)}/oekaki</div></div><span class="tag or">${t.forkTag}</span></div>
   <div class="tabs">${Object.keys(br).map(n=>`<button class="tab ${n===S.forkView?'on':''}" data-act="forkview" data-b="${esc(n)}">🌿 ${esc(n)}</button>`).join('')}</div>
   <div class="row"><div class="cvwrap" style="width:168px"><canvas data-pix="fork" data-size="168" data-click="fork"></canvas></div><div class="side">${side}</div></div>
-  <div class="glabel">コミットの歴史</div>${graph(br,null)}</div>`;
+  <div class="glabel">${t.hist}</div>${graph(br,null)}</div>`;
 }
 function zLocal(){
-  if(!S.local)return `<div class="ph"><div>💻 まだクローンしていません<br><small>クローンすると、ここで絵を描けるようになります</small></div></div>`;
+  const t=T();
+  if(!S.local)return `<div class="ph"><div>${t.localPh}</div></div>`;
   const L=S.local,chg=localChanges(),ah=ahead(),drawable=canDraw();
-  const tabs=Object.keys(L.branches).map(n=>`<button class="tab ${n===L.head?'on':''}" data-act="switch" data-b="${esc(n)}">🌿 ${esc(n)}${n===L.head?'<span class="hd">いまここ</span>':''}</button>`).join('');
+  const tabs=Object.keys(L.branches).map(n=>`<button class="tab ${n===L.head?'on':''}" data-act="switch" data-b="${esc(n)}">🌿 ${esc(n)}${n===L.head?`<span class="hd">${t.here}</span>`:''}</button>`).join('');
   let ctl='';
-  if(S.step===3)ctl+=`<div class="box"><h4>🌿 ブランチを作る</h4><div class="field"><input data-draft="branch" value="${esc(S.drafts.branch)}"><button class="btn green${hint('branch')} up-tip" data-act="branch">作る</button></div><div class="small">英小文字・数字・ハイフンで名前をつけるよ</div></div>`;
+  if(S.step===3)ctl+=`<div class="box"><h4>${t.branchH}</h4><div class="field"><input data-draft="branch" value="${esc(S.drafts.branch)}"><button class="btn green${hint('branch')} up-tip" data-act="branch">${t.create}</button></div><div class="small">${t.branchHint}</div></div>`;
   if(S.feat&&S.step<=8){
-    ctl+=`<div class="box"><h4>💾 コミット（セーブ）</h4><div class="status" id="chg">${chg?`セーブしていない変更：<b>${chg} マス</b>`:'変更なし'}</div>
-      <div class="field" style="margin-top:6px"><input data-draft="msg" placeholder="例：ネコを描いた" value="${esc(S.drafts.msg)}"></div>
-      <div class="field" style="margin-top:6px"><button class="btn${hint('commit')}" data-act="commit" ${L.head===S.feat?'':'disabled'}>💾 コミット</button><button class="btn ghost" data-act="restore">↩️ 取り消す</button></div></div>`;
-    ctl+=`<div class="box"><h4>⬆️ プッシュ（GitHubへ送る）</h4><div class="status">${ah?`まだ送っていないコミット：<b>${ah} 個</b>`:'<span class="small">送っていないコミットはないよ</span>'}</div>
-      <button class="btn blue${hint('push')}" data-act="push" style="margin-top:6px" ${S.step>=5&&ah?'':'disabled'}>⬆️ プッシュ</button></div>`;
+    ctl+=`<div class="box"><h4>${t.commitH}</h4><div class="status" id="chg">${chg?t.unsaved(chg):t.noChange}</div>
+      <div class="field" style="margin-top:6px"><input data-draft="msg" placeholder="${t.msgPh}" value="${esc(S.drafts.msg)}"></div>
+      <div class="field" style="margin-top:6px"><button class="btn${hint('commit')}" data-act="commit" ${L.head===S.feat?'':'disabled'}>${t.commitBtn}</button><button class="btn ghost" data-act="restore">${t.restoreBtn}</button></div></div>`;
+    ctl+=`<div class="box"><h4>${t.pushH}</h4><div class="status">${ah?t.notPushed(ah):`<span class="small">${t.noUnpushed}</span>`}</div>
+      <button class="btn blue${hint('push')}" data-act="push" style="margin-top:6px" ${S.step>=5&&ah?'':'disabled'}>${t.pushBtn}</button></div>`;
   }
-  if(S.step===10)ctl+=`<div class="box"><h4>⬇️ プル（GitHubから取りこむ）</h4><div class="small">main に切り替えて、フォークの新しい絵を持ってくる</div><button class="btn blue${hint('pull')}" data-act="pull" style="margin-top:6px">⬇️ プル</button></div>`;
-  if(S.step>=11)ctl+='<div class="box"><h4>✅ ぜんぶ同じ</h4><div class="small">本家・フォーク・パソコンの main が同じ絵になったよ</div></div>';
-  const pal=S.feat&&S.step<=8?`<div class="palette">${PAL.map((c,i)=>`<button class="sw ${S.color===i?'on':''}" title="${c[1]}" style="background:${c[0]}" data-act="color" data-i="${i}"></button>`).join('')}</div>`:'';
-  return `<div class="zone"><div class="zone-head"><span class="ava" style="background:#dbe9ff">🧑‍🎨</span><div><div class="zt"><b>あなた</b>のパソコンのリポジトリ</div><div class="url">~/oekaki</div></div><span class="tag lo">ローカル</span></div>
+  if(S.step===10)ctl+=`<div class="box"><h4>${t.pullH}</h4><div class="small">${t.pullSub}</div><button class="btn blue${hint('pull')}" data-act="pull" style="margin-top:6px">${t.pullBtn}</button></div>`;
+  if(S.step>=11)ctl+=`<div class="box"><h4>${t.allSameH}</h4><div class="small">${t.allSameSub}</div></div>`;
+  const pal=S.feat&&S.step<=8?`<div class="palette">${PAL.map((c,i)=>`<button class="sw ${S.color===i?'on':''}" title="${t.palette[i]}" style="background:${c}" data-act="color" data-i="${i}"></button>`).join('')}</div>`:'';
+  return `<div class="zone"><div class="zone-head"><span class="ava" style="background:#dbe9ff">🧑‍🎨</span><div><div class="zt">${t.localTitle}</div><div class="url">~/oekaki</div></div><span class="tag lo">${t.localTag}</span></div>
    <div class="tabs">${tabs}</div>
    <div class="row"><div class="cvwrap" style="width:288px;max-width:100%"><canvas class="${drawable?'paint':''}" data-pix="local" data-size="288" data-grid="1"></canvas>${pal}</div>
    <div class="side" style="min-width:220px">${ctl}</div></div>
-   <div class="glabel">コミットの歴史（緑のラベルが、いま開いているブランチ）</div>${graph(L.branches,L.head)}</div>`;
+   <div class="glabel">${t.histLocal}</div>${graph(L.branches,L.head)}</div>`;
 }
 function prPanel(){
   if(!S.pr)return '';
-  const pr=S.pr,h=prHead(),base=reach([S.forkBase]);
+  const t=T(),pr=S.pr,h=prHead(),base=reach([S.forkBase]);
   const mine=minus(reach([h]),base).map(i=>commits[i]).sort((a,b)=>a.seq-b.seq);
   const n=diffIdx(P(S.forkBase),P(h)).length;
-  const talk=pr.talk.map(t=>{const a=t.who==='sys'?{e:'•'}:t.who==='me'?S.me:AUTH[t.who];return `<div class="msg ${t.who==='sys'?'sys':''}"><span class="face">${a.e}</span><div class="txt">${t.text}</div></div>`;}).join('');
+  const talk=pr.talk.map(m=>{const e=m.who==='sys'?'•':AUTH[m.who].e;return `<div class="msg ${m.who==='sys'?'sys':''}"><span class="face">${e}</span><div class="txt">${tr(m.k,...(m.a||[]))}</div></div>`;}).join('');
   let mb='';
-  if(pr.status==='merged')mb=`<div class="mergebox done">🎉 <b>マージされました！</b> あなたの変更が本家の main に入りました。</div>`;
-  else if(S.step===8&&S.cf.length&&!S.cfChoice)mb=`<div class="mergebox conf"><b>⚡ コンフリクト：${S.cf.length} マスがぶつかっています</b><div class="small">マージの前に、PRを出した<b>あなた</b>がどちらにするか決めよう</div><div class="cmp" style="margin-top:6px">
-     <figure><canvas data-pix="cfUp" data-size="110"></canvas>本家（ペンギンさん）</figure><figure><canvas data-pix="cfMine" data-size="110"></canvas>あなた</figure></div>
-     <div style="margin-top:10px;font-weight:800">👇 どちらかを押そう</div><div class="field" style="margin-top:8px;gap:14px"><button class="btn${hint('cf')} no-tip" data-act="cf" data-v="theirs">🐧 ペンギンさんの色にする</button><button class="btn${hint('cf')} no-tip" data-act="cf" data-v="mine">${S.me.e} あなたの色にする</button></div></div>`;
-  else if(S.step===8)mb=`<div class="mergebox">✅ クマさんが承認しました${S.cfChoice?'（コンフリクトは解決ずみ）':''}。<div style="margin-top:6px">🐻 クマさんが「🔀 Merge」ボタンを押しています…</div><div class="small">マージするのは、本家の持ち主のクマさん</div></div>`;
-  else mb=`<div class="mergebox">${pr.review?'✋ クマさんが<b>変更をお願い</b>しています。直してプッシュしよう。':'⏳ レビュー待ち…'}</div>`;
+  if(pr.status==='merged')mb=`<div class="mergebox done">${t.mergedBox}</div>`;
+  else if(S.step===8&&S.cf.length&&!S.cfChoice)mb=`<div class="mergebox conf"><b>${t.cfTitle(S.cf.length)}</b><div class="small">${t.cfSub}</div><div class="cmp" style="margin-top:6px">
+     <figure><canvas data-pix="cfUp" data-size="110"></canvas>${t.cfUp}</figure><figure><canvas data-pix="cfMine" data-size="110"></canvas>${t.you}</figure></div>
+     <div style="margin-top:10px;font-weight:800">${t.pickOne}</div><div class="field" style="margin-top:8px;gap:14px"><button class="btn${hint('cf')} no-tip" data-act="cf" data-v="theirs">${t.cfTheirs}</button><button class="btn${hint('cf')} no-tip" data-act="cf" data-v="mine">${t.cfMine}</button></div></div>`;
+  else if(S.step===8)mb=`<div class="mergebox">${t.approved(!!S.cfChoice)}<div style="margin-top:6px">${t.bearMerging}</div><div class="small">${t.mergerNote}</div></div>`;
+  else mb=`<div class="mergebox">${pr.review?t.changesReq:t.waiting}</div>`;
   return `<div class="pr" id="prbox"><div class="pr-head"><span class="pr-title">📨 #2 ${esc(pr.title)}</span><span class="state ${pr.status==='merged'?'merged':'open'}">${pr.status==='merged'?'Merged':'Open'}</span></div>
-   <div class="small">${S.me.e} ${esc(S.me.id)}:<b>${esc(S.feat)}</b> → 🐻 kuma:<b>main</b> ・ ${mine.length} コミット ・ ${n} マス変更</div>
-   <div class="prgrid"><div><div class="glabel">🖼 変更されたところ（ピンクの枠）</div><div class="cmp"><figure><canvas data-pix="prBase" data-size="120"></canvas>前</figure><span>➡️</span><figure><canvas data-pix="prHead" data-size="120"></canvas>後</figure></div>
-     <div class="glabel">💾 ふくまれるコミット</div><ul class="clist">${mine.map(c=>`<li><span class="hash">${c.hash}</span>${esc(c.msg)}</li>`).join('')}</ul></div>
-     <div><div class="glabel">💬 会話</div><div class="talk">${talk}</div>${mb}</div></div></div>`;
+   <div class="small">🧑‍🎨 ${esc(S.me.id)}:<b>${esc(S.feat)}</b> → 🐻 kuma:<b>main</b> ・ ${t.prMeta(mine.length,n)}</div>
+   <div class="prgrid"><div><div class="glabel">${t.changed}</div><div class="cmp"><figure><canvas data-pix="prBase" data-size="120"></canvas>${t.before}</figure><span>➡️</span><figure><canvas data-pix="prHead" data-size="120"></canvas>${t.after}</figure></div>
+     <div class="glabel">${t.commitsL}</div><ul class="clist">${mine.map(c=>`<li><span class="hash">${c.hash}</span>${esc(cmsg(c))}</li>`).join('')}</ul></div>
+     <div><div class="glabel">${t.talkL}</div><div class="talk">${talk}</div>${mb}</div></div></div>`;
 }
 function scheduleMerge(){if(S.mergeT)return;S.mergeT=setTimeout(()=>{S.mergeT=null;if(S.step===8)A.merge();},2600);S.timers.push(S.mergeT);}
 function render(){
-  if(S.step===8)S.cf=computeConflicts(); else S.cf=S.cf||[];
+  if(S.step===8)S.cf=computeConflicts();
   renderFlow(); renderGuide();
   $('#zUp').innerHTML=zUp(); $('#zFork').innerHTML=zFork(); $('#prArea').innerHTML=prPanel(); $('#zLocal').innerHTML=zLocal();
   drawAll(); bindPaint();
@@ -442,14 +698,14 @@ function render(){
 /* ---------- painting ---------- */
 function canDraw(){return S.local&&S.feat&&S.local.head===S.feat&&S.step>=4&&S.step<=7;}
 function whyNot(){
-  if(S.step===8)return 'いまはクマさんがマージするところ。見守ろう！';if(S.step>8)return 'プルリクエストはマージ済み。おつかれさま！';
-  if(S.local.head==='main')return S.feat?`いまは <b>main</b>（本番の絵）を開いているよ。ブランチ「${esc(S.feat)}」に切り替えてから描こう`:'main には直接描かないのがお約束。まずブランチを作ろう 🌿';
+  if(S.step===8)return tr('merging');if(S.step>8)return tr('mergedDone');
+  if(S.local.head==='main')return S.feat?tr('onMain',esc(S.feat)):tr('mainFirst');
   return '';
 }
 function bindPaint(){
   const cv=document.querySelector('canvas[data-pix=local]');if(!cv)return;let on=false;
   const at=e=>{const r=cv.getBoundingClientRect(),c=Math.floor((e.clientX-r.left)/r.width*W),rr=Math.floor((e.clientY-r.top)/r.height*W);return(c<0||c>=W||rr<0||rr>=W)?-1:rr*W+c;};
-  const paint=i=>{if(i<0||S.local.work[i]===S.color)return;S.local.work[i]=S.color;drawCanvas(cv,pixFor('local'));const n=localChanges(),el=$('#chg');if(el)el.innerHTML=n?`セーブしていない変更：<b>${n} マス</b>`:'変更なし';};
+  const paint=i=>{if(i<0||S.local.work[i]===S.color)return;S.local.work[i]=S.color;drawCanvas(cv,pixFor('local'));const n=localChanges(),el=$('#chg');if(el)el.innerHTML=n?tr('unsaved',n):tr('noChange');};
   cv.addEventListener('pointerdown',e=>{if(!canDraw()){toast(whyNot());return;}on=true;cv.setPointerCapture(e.pointerId);paint(at(e));e.preventDefault();});
   cv.addEventListener('pointermove',e=>{if(on)paint(at(e));});
   const end=()=>{if(on){on=false;render();}};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
@@ -458,52 +714,53 @@ function bindPaint(){
 /* ---------- actions ---------- */
 const A={
   reset(){init();},
-  fork(){S.fork={branches:{main:S.up.main}};addLog('n','# GitHubで、クマさんのリポジトリの「Fork」ボタンを押す');addLog('o',`→ github.com/${S.me.id}/oekaki ができた`);S.step=2;render();fly('#zUp','#zFork','🍴');},
+  fork(){S.fork={branches:{main:S.up.main}};addLog('n',null,'lFork');addLog('o',null,'lForkOut',S.me.id);S.step=2;render();fly('#zUp','#zFork','🍴');},
   clone(){S.local={branches:{main:S.fork.branches.main},head:'main',work:P(S.fork.branches.main).slice()};
     addLog('c',`git clone https://github.com/${S.me.id}/oekaki.git`);addLog('o',"Cloning into 'oekaki'... done.");addLog('c','cd oekaki');S.step=3;render();fly('#zFork','#zLocal','📦');},
   branch(){let n=(S.drafts.branch||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
-    if(!n||n==='main'){toast('ブランチの名前を英小文字で書いてね（main 以外）');return;}
+    if(!n||n==='main'){toast(tr('branchErr'));return;}
     S.feat=n;S.local.branches[n]=S.local.branches.main;S.local.head=n;addLog('c',`git switch -c ${n}`);addLog('o',`Switched to a new branch '${n}'`);S.step=4;render();},
   color(el){S.color=+el.dataset.i;render();},
-  switch(el){const b=el.dataset.b;if(b===S.local.head)return;if(localChanges()){toast('セーブしていない変更があるよ。コミットするか「取り消す」をしてから切り替えよう');return;}
-    S.local.head=b;S.local.work=P(headId()).slice();addLog('c',`git switch ${b}`);addLog('o',`Switched to branch '${b}'`);render();toast(`🌿 ${esc(b)} に切り替え。絵が${b==='main'?'本番の絵':'そのブランチの絵'}になったね`);},
+  switch(el){const b=el.dataset.b;if(b===S.local.head)return;if(localChanges()){toast(tr('unsavedSwitch'));return;}
+    S.local.head=b;S.local.work=P(headId()).slice();addLog('c',`git switch ${b}`);addLog('o',`Switched to branch '${b}'`);render();toast(tr('switched',esc(b),b==='main'));},
   forkview(el){S.forkView=el.dataset.b;render();},
-  restore(){if(!localChanges()){toast('取り消す変更はないよ');return;}S.local.work=P(headId()).slice();addLog('c','git restore oekaki.png');render();toast('↩️ 最後のセーブにもどしたよ');},
-  commit(){const n=localChanges();if(!n){toast('まだ変更がないよ。絵を描いてからコミットしよう');return;}
-    const msg=S.drafts.msg.trim();if(!msg){toast('メッセージを書こう（なにを変えたか、ひとこと）');const i=document.querySelector('input[data-draft=msg]');if(i)i.focus();return;}
+  restore(){if(!localChanges()){toast(tr('nothingRestore'));return;}S.local.work=P(headId()).slice();addLog('c','git restore oekaki.png');render();toast(tr('restored'));},
+  commit(){const n=localChanges();if(!n){toast(tr('noChanges'));return;}
+    const msg=S.drafts.msg.trim();if(!msg){toast(tr('needMsg'));const i=document.querySelector('input[data-draft=msg]');if(i)i.focus();return;}
     const id=mk(S.local.work,msg,'me',[headId()],1);S.local.branches[S.local.head]=id;
-    addLog('c','git add oekaki.png');addLog('c',`git commit -m "${msg}"`);addLog('o',`[${S.local.head} ${commits[id].hash}] ${msg}\n 1 file changed (${n}マス)`);
-    S.drafts.msg='';if(S.step===4)S.step=5;render();toast('💾 セーブ（コミット）できた！');},
-  push(){if(S.local.head!==S.feat){toast(`ブランチ「${esc(S.feat)}」に切り替えてからプッシュしよう`);return;}
+    addLog('c','git add oekaki.png');addLog('c',`git commit -m "${msg}"`);addLog('o',`[${S.local.head} ${commits[id].hash}] ${msg}`);addLog('o',null,'changedOut',n);
+    S.drafts.msg='';if(S.step===4)S.step=5;render();toast(tr('committed'));},
+  push(){if(S.local.head!==S.feat){toast(tr('switchBeforePush',esc(S.feat)));return;}
     const k=ahead();if(!k)return;const isNew=!S.fork.branches[S.feat];S.fork.branches[S.feat]=S.local.branches[S.feat];S.forkView=S.feat;
     addLog('c',`git push origin ${S.feat}`);addLog('o',`To github.com/${S.me.id}/oekaki.git\n ${isNew?`* [new branch] ${S.feat} -> ${S.feat}`:`${k} commit(s) ${S.feat} -> ${S.feat}`}`);
     if(S.step===5)S.step=6;
-    if(S.pr&&S.pr.status==='open'){S.pr.talk.push({who:'sys',text:`${S.me.name}が ${k} 個のコミットを追加しました`});
-      if(S.pr.review&&S.step===7&&S.fork.branches[S.feat]!==S.pr.headAtReview){S.timers.push(setTimeout(()=>{S.pr.talk.push({who:'bear',text:'サインもばっちり！ 承認するね ✅'});S.step=8;render();toast('✅ クマさんが承認してくれた！');if(!S.cf.length)scheduleMerge();},1000));}}
+    if(S.pr&&S.pr.status==='open'){S.pr.talk.push({who:'sys',k:'tAdd',a:[esc(S.me.name),k]});
+      if(S.pr.review&&S.step===7&&S.fork.branches[S.feat]!==S.pr.headAtReview){S.timers.push(setTimeout(()=>{S.pr.talk.push({who:'bear',k:'tApprove'});S.step=8;render();toast(tr('approvedToast'));if(!S.cf.length)scheduleMerge();},1000));}}
     render();fly('#zLocal','#zFork','📦');},
-  pr(){const t=(S.drafts.pr||'').trim()||'動物を描き足しました';
-    S.pr={title:t,status:'open',review:false,talk:[{who:'me',text:`クマさんの絵に動物を描き足しました。取りこんでもらえるとうれしいです！`}]};
-    addLog('n','# GitHubで「Pull request」を作る');addLog('o',`#2 ${t}  (${S.me.id}:${S.feat} → kuma:main)`);S.step=7;render();fly('#zFork','#zUp','📨');
+  pr(){const t=(S.drafts.pr||'').trim()||tr('prDefault');
+    S.pr={title:t,status:'open',review:false,talk:[{who:'me',k:'tOpen'}]};
+    addLog('n',null,'lPR');addLog('o',`#2 ${t}  (${S.me.id}:${S.feat} → kuma:main)`);S.step=7;render();fly('#zFork','#zUp','📨');
     S.timers.push(setTimeout(()=>{const p=P(S.up.main).slice();setPx(p,[[8,9],[10,9],[9,8],[9,10]],6);setPx(p,[[9,9]],4);
-      S.up.main=mk(p,'お花をさかせた (#1)','peng',[S.up.main],0);S.pengDone=true;
-      S.pr.talk.push({who:'sys',text:'🐧 そのころ、ペンギンさんのプルリクエスト #1 が本家にマージされました'});addLog('n','# （そのころ、ペンギンさんの #1 が本家にマージされた）');render();toast('🐧 ペンギンさんの変更が本家に入ったよ！ 本家の絵を見てみて');},1800));
+      S.up.main=mk(p,'','peng',[S.up.main],0,'mPeng');S.pengDone=true;
+      S.pr.talk.push({who:'sys',k:'tPeng'});addLog('n',null,'lPeng');render();toast(tr('pengToast'));},1800));
     S.timers.push(setTimeout(()=>{S.pr.review=true;S.pr.headAtReview=S.fork.branches[S.feat];
-      S.pr.talk.push({who:'bear',text:`すてきな絵だね！ 🎨 ひとつお願い。絵のどこかに、あなたの<b>サイン</b>（1マスでもOK）を描き足してくれるかな？`});render();toast('🐻 クマさんからレビューが届いた！');},4600));},
-  cf(el){S.cfChoice=el.dataset.v;S.pr.talk.push({who:'sys',text:`あなたがコンフリクトを解決：${S.cfChoice==='mine'?'あなた':'ペンギンさん'}の色にした`});render();scheduleMerge();},
+      S.pr.talk.push({who:'bear',k:'tReview'});render();toast(tr('reviewToast'));},4600));},
+  cf(el){S.cfChoice=el.dataset.v;S.pr.talk.push({who:'sys',k:'tCf',a:[S.cfChoice==='mine']});render();scheduleMerge();},
   merge(){const b=P(S.forkBase),o=P(S.up.main),h=prHead(),t=P(h),m=o.slice();
     for(let i=0;i<N;i++){if(t[i]!==b[i]&&(o[i]===b[i]||S.cfChoice==='mine'))m[i]=t[i];}
     const id=mk(m,`Merge pull request #2 from ${S.me.id}/${S.feat}`,'bear',[S.up.main,h],0);S.up.main=id;S.pr.status='merged';S.pr.head=h;
-    S.pr.talk.push({who:'bear',text:'マージしたよ。ありがとう！ 🎉'});addLog('n','# （本家の持ち主のクマさんが、GitHubで「Merge pull request」を押した）');addLog('o',`kuma/oekaki main ← #2`);S.step=9;render();celebrate();toast('🎉 クマさんがマージしてくれた！');},
-  sync(){S.fork.branches.main=S.up.main;S.forkView='main';addLog('n','# GitHubで、フォークの「Sync fork」ボタンを押す');addLog('o','This branch is up to date with kuma/oekaki:main');S.step=10;render();fly('#zUp','#zFork','🔄');},
+    S.pr.talk.push({who:'bear',k:'tThanks'});addLog('n',null,'lMerge');addLog('o',`kuma/oekaki main ← #2`);S.step=9;render();celebrate();toast(tr('mergedToast'));},
+  sync(){S.fork.branches.main=S.up.main;S.forkView='main';addLog('n',null,'lSync');addLog('o','This branch is up to date with kuma/oekaki:main');S.step=10;render();fly('#zUp','#zFork','🔄');},
   pull(){S.local.branches.main=S.fork.branches.main;S.local.head='main';S.local.work=P(S.local.branches.main).slice();
-    addLog('c','git switch main');addLog('c','git pull origin main');addLog('o','Fast-forward\n oekaki.png | 更新');S.step=11;render();fly('#zFork','#zLocal','📦');celebrate();},
+    addLog('c','git switch main');addLog('c','git pull origin main');addLog('o','Fast-forward');addLog('o',null,'pullOut');S.step=11;render();fly('#zFork','#zLocal','📦');celebrate();},
 };
 document.addEventListener('click',e=>{
+  const lb=e.target.closest('[data-lang]');if(lb){setLang(lb.dataset.lang);return;}
   const b=e.target.closest('[data-act]');if(b&&!b.disabled&&A[b.dataset.act]){A[b.dataset.act](b);return;}
   const node=e.target.closest('[data-cid]');if(node){showPop(node.dataset.cid,node);return;}
   const ck=e.target.closest('canvas[data-click]');
-  if(ck){if(ck.dataset.click==='up'){toast('🔒 これはクマさんのリポジトリ。勝手には描きこめないよ！');if(S.step===1&&!S.tried){S.tried=true;render();}}
-    else toast(S.local?'絵はパソコンで描こう（下の「あなたのパソコン」）':'GitHubの上ではなく、パソコンで描こう。まずクローンしてね');return;}
+  if(ck){if(ck.dataset.click==='up'){toast(tr('lockToast'));if(S.step===1&&!S.tried){S.tried=true;render();}}
+    else toast(S.local?tr('drawOnPc'):tr('drawClone'));return;}
   if(!e.target.closest('#pop'))hidePop();
 });
 document.addEventListener('input',e=>{const k=e.target.dataset.draft;if(k)S.drafts[k]=e.target.value;});
@@ -511,9 +768,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.
 
 /* ---------- popover ---------- */
 function showPop(id,node){
-  const c=commits[id],a=c.author==='me'?S.me:AUTH[c.author];S.popId=id;const p=$('#pop');
-  p.innerHTML=`<button class="x" data-close>×</button><div style="font-weight:700;margin-bottom:4px">${a.e} ${esc(a.name)}</div><canvas data-pix="pop" data-size="176"></canvas>
-   <div style="margin-top:6px"><span class="hash">${c.hash}</span>${esc(c.msg)}</div><div class="small">${c.parents.length>1?'2つの流れを合体したコミット':'このときの絵（セーブポイント）'}</div>`;
+  const c=commits[id],a=AUTH[c.author];S.popId=id;const p=$('#pop');
+  p.innerHTML=`<button class="x" data-close>×</button><div style="font-weight:700;margin-bottom:4px">${a.e} ${esc(aName(c.author))}</div><canvas data-pix="pop" data-size="176"></canvas>
+   <div style="margin-top:6px"><span class="hash">${c.hash}</span>${esc(cmsg(c))}</div><div class="small">${c.parents.length>1?tr('popMerge'):tr('popSave')}</div>`;
   p.style.display='block';drawCanvas(p.querySelector('canvas'),{p:c.p});
   const r=node.getBoundingClientRect();let x=r.left+r.width/2-100,y=r.bottom+8;
   x=Math.max(8,Math.min(innerWidth-208,x));if(y+p.offsetHeight>innerHeight-8)y=r.top-p.offsetHeight-8;p.style.left=x+'px';p.style.top=y+'px';
@@ -524,19 +781,21 @@ addEventListener('scroll',hidePop,{passive:true});
 
 /* ---------- welcome ---------- */
 function showWelcome(){
-  const w=$('#welcome');
-  w.innerHTML=`<div class="card"><h2>🎨 クマさんの絵に、描き足しにいこう</h2>
-    <p style="margin:0 0 10px;font-size:.92rem">クマさんがGitHubで公開している絵に、あなたが好きな動物を描き足して、クマさんの作品に<b>取りこんでもらう</b>までを体験します。プログラマーが世界中の人とソフトを作るときも、同じ流れを使っています。</p>
-    <div class="cast"><div><span>🧑‍🎨</span><b>あなた</b><small>絵を描き足す人</small></div><div><span>🐻</span><b>クマさん</b><small>絵（本家）の持ち主</small></div><div><span>🐧</span><b>ペンギンさん</b><small>ほかの参加者</small></div></div>
-    <label style="font-weight:700;font-size:.9rem">あなたのニックネーム</label>
-    <div class="field" style="margin-top:4px"><input id="nick" placeholder="例：ゆう" maxlength="12"><button class="btn" id="go">はじめる ▶</button></div></div>`;
-  const go=()=>{const nick=$('#nick').value.trim();if(!nick){toast('ニックネームを入れてね');$('#nick').focus();return;}
+  const t=T(),w=$('#welcome');
+  w.innerHTML=`<div class="card"><div style="display:flex;justify-content:flex-end;margin-bottom:6px"><div class="langs">${['ja','en','ko'].map(l=>`<button class="lang${l===LANG?' on':''}" data-lang="${l}">${{ja:'日本語',en:'English',ko:'한국어'}[l]}</button>`).join('')}</div></div>
+    <h2>${t.wTitle}</h2>
+    <p style="margin:0 0 10px;font-size:.92rem">${t.wIntro}</p>
+    <div class="cast"><div><span>🧑‍🎨</span><b>${t.you}</b><small>${t.castMeSub}</small></div><div><span>🐻</span><b>${t.bear}</b><small>${t.castBearSub}</small></div><div><span>🐧</span><b>${t.peng}</b><small>${t.castPengSub}</small></div></div>
+    <label style="font-weight:700;font-size:.9rem">${t.nickLabel}</label>
+    <div class="field" style="margin-top:4px"><input id="nick" placeholder="${t.nickPh}" maxlength="12"><button class="btn" id="go">${t.start}</button></div></div>`;
+  const go=()=>{const nick=$('#nick').value.trim();if(!nick){toast(tr('nickNeed'));$('#nick').focus();return;}
     const ascii=nick.toLowerCase().replace(/[^a-z0-9-]/g,'');
-    S.me={id:ascii.length>=2?ascii:'you',name:nick,e:'🧑‍🎨',c:'#3d7be0'};AUTH.me={name:nick,e:'🧑‍🎨',c:'#3d7be0'};
-    S.drafts.branch='add-my-animal';S.drafts.pr='動物を描き足しました';S.step=1;w.style.display='none';render();};
+    S.me={id:ascii.length>=2?ascii:'you',name:nick};
+    S.drafts.branch='add-my-animal';S.drafts.pr=tr('prDefault');S.step=1;w.style.display='none';render();};
   $('#go').onclick=go;$('#nick').onkeydown=e=>{if(e.key==='Enter')go();};
-  w.style.display='grid';setTimeout(()=>$('#nick').focus(),50);
+  w.style.display='grid';setTimeout(()=>$('#nick')&&$('#nick').focus(),50);
 }
+renderStatic();
 init();
 })();
 </script>
